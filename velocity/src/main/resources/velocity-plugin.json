@@ -1,0 +1,11 @@
+{
+  "id": "cloudcore",
+  "name": "CloudCore",
+  "version": "1.0-SNAPSHOT",
+  "description": "Adds cooldown to server switching",
+  "authors": [
+    "MythicalSystems"
+  ],
+  "dependencies": [],
+  "main": "systems.mythical.cloudcore.velocity.CloudCoreVelocity"
+} 

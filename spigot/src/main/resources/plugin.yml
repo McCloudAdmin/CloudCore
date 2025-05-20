@@ -1,0 +1,5 @@
+name: CloudCore
+version: 1.0.0
+main: systems.mythical.cloudcore.spigot.CloudCoreSpigot
+author: Mythical
+description: A simple MySQL connection plugin

@@ -1,11 +1,13 @@
 package systems.mythical.cloudcore.core;
 
+import systems.mythical.cloudcore.config.CloudCoreConfig;
 import java.io.File;
 import java.util.logging.Logger;
 
 public class CloudCore {
     private final Logger logger;
     private final File dataFolder;
+    private final CloudCoreConfig config;
 
     public CloudCore(File dataFolder, Logger logger) {
         this.dataFolder = dataFolder;
@@ -16,10 +18,28 @@ public class CloudCore {
             dataFolder.mkdirs();
         }
         
+        // Initialize configuration
+        this.config = CloudCoreConfig.getInstance(dataFolder, logger);
+        
+        logger.info("CloudCore has been initialized!");
+        if (config.isDebugMode()) {
+            logger.info("Debug mode is enabled");
+        }
     }
     
     public void shutdown() {
-
+        logger.info("Shutting down CloudCore...");
     }
 
+    public CloudCoreConfig getConfig() {
+        return config;
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
+    public File getDataFolder() {
+        return dataFolder;
+    }
 } 

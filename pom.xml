@@ -14,7 +14,7 @@
         <module>velocity</module>
         <module>bungeecord</module>
         <module>spigot</module>
-        <module>bootstrap</module>
+        <module>server</module>
     </modules>
 
     <properties>
@@ -100,6 +100,16 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

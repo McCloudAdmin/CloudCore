@@ -1,0 +1,20 @@
+# CloudCore Configuration
+
+# Server connection settings
+server:
+  host: "localhost"
+  port: 9882
+  websocket_path: "/ws"
+  password: "password"
+  reconnect_interval: 5000  # Time in milliseconds between reconnection attempts
+  max_reconnect_attempts: 5  # Maximum number of reconnection attempts
+  connection_timeout: 30000  # Connection timeout in milliseconds
+
+# Plugin settings
+plugin:
+  debug_mode: false
+  update_check: true
+  platforms:
+    spigot: true
+    bungeecord: true
+    velocity: true 

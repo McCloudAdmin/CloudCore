@@ -25,7 +25,7 @@
     </dependencies>
 
     <build>
-        <finalName>CloudCore-${project.version}</finalName>
+        <finalName>cloudcore-spigot-${project.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -35,8 +35,17 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.5.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -45,12 +54,11 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>systems.mythical.cloudcore.core</pattern>
-                                    <shadedPattern>systems.mythical.cloudcore.spigot.libs.core</shadedPattern>
-                                </relocation>
-                            </relocations>
+                            <artifactSet>
+                                <includes>
+                                    <include>systems.mythical.cloudcore:cloudcore-core</include>
+                                </includes>
+                            </artifactSet>
                         </configuration>
                     </execution>
                 </executions>

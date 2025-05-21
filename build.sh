@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build the universal JAR
+# Build all modules
 mvn clean package
 
 if [ $? -ne 0 ]; then
@@ -8,44 +8,66 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-rm CloudCore.jar 
-
-
-# The output JAR will be in bootstrap/target/
-# Copy it to a more convenient location
-cp bootstrap/target/CloudCore-*-SNAPSHOT.jar ./CloudCore.jar
-
-echo ""
-echo "Build complete!"
-echo "Universal JAR is available at: ./CloudCore.jar"
-echo "This single JAR works on both BungeeCord and Velocity platforms." 
+# Clean up old files
+rm -f CloudCore.jar
 rm -rf ./tests/bungee/plugins/CloudCore.jar
-rm -rf ./tests/velocity/plugins/CloudCore.jar
+rm -rf ./tests/velo/plugins/CloudCore.jar
 rm -rf ./tests/bungee/plugins/CloudCore
 rm -rf ./tests/velo/plugins/cloudcore
 rm -rf ./tests/spigot/plugins/CloudCore.jar
 rm -rf ./tests/spigot/plugins/CloudCore
 
-cp ./CloudCore.jar ./tests/bungee/plugins/CloudCore.jar
-cp ./CloudCore.jar ./tests/velo/plugins/CloudCore.jar
-cp ./CloudCore.jar ./tests/spigot/plugins/CloudCore.jar
-
-echo "Copied to tests/bungee/plugins/CloudCore.jar"
-echo "Copied to tests/velo/plugins/CloudCore.jar"
-echo "Copied to tests/spigot/plugins/CloudCore.jar"
+# Copy platform-specific JARs to their respective test directories
+cp ./velocity/target/cloudcore-velocity-*-SNAPSHOT.jar ./tests/velo/plugins/CloudCore.jar
+cp ./bungeecord/target/cloudcore-bungeecord-*-SNAPSHOT.jar ./tests/bungee/plugins/CloudCore.jar
+cp ./spigot/target/cloudcore-spigot-*-SNAPSHOT.jar ./tests/spigot/plugins/CloudCore.jar
 
 echo "Build complete!"
+echo "JARs are available at:"
+echo "- Velocity: ./tests/velo/plugins/CloudCore.jar"
+echo "- BungeeCord: ./tests/bungee/plugins/CloudCore.jar"
+echo "- Spigot: ./tests/spigot/plugins/CloudCore.jar"
+
+# Check if server JARs exist
+if [ ! -f "./tests/bungee/BungeeCord.jar" ]; then
+    echo "Error: BungeeCord.jar not found in ./tests/bungee/"
+    exit 1
+fi
+
+if [ ! -f "./tests/velo/Velocity.jar" ]; then
+    echo "Error: Velocity.jar not found in ./tests/velo/"
+    exit 1
+fi
+
+if [ ! -f "./tests/spigot/FlamePaper.jar" ]; then
+    echo "Error: FlamePaper.jar not found in ./tests/spigot/"
+    exit 1
+fi
 
 echo "Running tests..."
 cd ./tests/bungee
-java -jar BungeeCord.jar
-cd ..
-cd velo
-java -jar Velocity.jar
-cd ..
+java -jar BungeeCord.jar &
+BUNGEE_PID=$!
+cd ../velo
+java -jar Velocity.jar &
+VELOCITY_PID=$!
+cd ../spigot
+java -jar FlamePaper.jar &
+SPIGOT_PID=$!
+cd ../..
 
-cd spigot
-java -jar FlamePaper.jar
-cd ..
+echo "Tests started!"
+echo "Press Ctrl+C to stop all test servers"
 
-echo "Tests complete!"
+# Function to handle cleanup on script exit
+cleanup() {
+    echo "Shutting down test servers..."
+    kill $BUNGEE_PID $VELOCITY_PID $SPIGOT_PID 2>/dev/null
+    exit 0
+}
+
+# Set up trap for cleanup
+trap cleanup SIGINT SIGTERM
+
+# Wait for user to press Ctrl+C
+wait

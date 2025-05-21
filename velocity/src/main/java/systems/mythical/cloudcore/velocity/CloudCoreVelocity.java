@@ -1,26 +1,60 @@
 package systems.mythical.cloudcore.velocity;
 
-import com.google.inject.Inject;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.plugin.annotation.DataDirectory;
-import systems.mythical.cloudcore.core.CloudCore;
-import java.nio.file.Path;
+import systems.mythical.cloudcore.velocity.config.VelocityConfig;
+import systems.mythical.cloudcore.velocity.websocket.VelocityWebSocketClient;
+
+import java.io.File;
 import java.util.logging.Logger;
 
-@Plugin(id = "cloudcore", name = "CloudCore", version = "1.0-SNAPSHOT", description = "A simple MySQL connection plugin", authors = {
-        "MythicalSystems" })
+@Plugin(
+    id = "cloudcore",
+    name = "CloudCore",
+    version = "1.0.0",
+    description = "CloudCore for Velocity",
+    authors = {"MythicalSystems"}
+)
 public class CloudCoreVelocity {
-    private CloudCore core;
+    private final ProxyServer server;
+    private final Logger logger;
+    private VelocityConfig config;
+    private VelocityWebSocketClient webSocketClient;
 
-    @Inject
-    public CloudCoreVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataFolder) {
-        core = new CloudCore(dataFolder.toFile(), logger);
+    public CloudCoreVelocity(ProxyServer server, Logger logger) {
+        this.server = server;
+        this.logger = logger;
     }
 
-    public void shutdown() {
-        if (core != null) {
-            core.shutdown();
+    @Subscribe
+    public void onProxyInitialize(ProxyInitializeEvent event) {
+        // Initialize configuration
+        File dataFolder = new File("plugins/CloudCore");
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs();
         }
+        config = new VelocityConfig(dataFolder, logger);
+
+        // Initialize WebSocket client
+        webSocketClient = new VelocityWebSocketClient(this, server);
+        webSocketClient.connect();
+    }
+
+    @Subscribe
+    public void onProxyShutdown(ProxyShutdownEvent event) {
+        if (webSocketClient != null) {
+            webSocketClient.disconnect();
+        }
+    }
+
+    public VelocityConfig getConfig() {
+        return config;
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 }

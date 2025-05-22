@@ -1,0 +1,245 @@
+package systems.mythical.cloudcore.users;
+
+import systems.mythical.cloudcore.database.DatabaseManager;
+
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Logger;
+
+public class UserManager {
+    private static UserManager instance;
+    private final DatabaseManager databaseManager;
+    private final Logger logger;
+
+    private UserManager(DatabaseManager databaseManager, Logger logger) {
+        this.databaseManager = databaseManager;
+        this.logger = logger;
+    }
+
+    public static UserManager getInstance(DatabaseManager databaseManager, Logger logger) {
+        if (instance == null) {
+            instance = new UserManager(databaseManager, logger);
+        }
+        return instance;
+    }
+
+    public User createUser(String username, UUID uuid, String ip) {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "INSERT INTO mccloudadmin_users (username, first_ip, last_ip, uuid, token, user_connected_server_name) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+
+            String token = UUID.randomUUID().toString();
+
+            try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+                stmt.setString(1, username);
+                stmt.setString(2, ip);
+                stmt.setString(3, ip);
+                stmt.setString(4, uuid.toString());
+                stmt.setString(5, token);
+                stmt.setString(6, "lobby"); // Default connected server
+
+                stmt.executeUpdate();
+
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        User user = new User();
+                        user.setId(rs.getInt(1));
+                        user.setUsername(username);
+                        user.setFirstIp(ip);
+                        user.setLastIp(ip);
+                        user.setUuid(uuid);
+                        user.setToken(token);
+                        user.setRole(1); // Default role
+                        user.setVerified(false);
+                        user.setAvatar("https://www.gravatar.com/avatar");
+                        user.setBackground("https://cdn.mythical.systems/background.gif");
+                        user.setFirstSeen(LocalDateTime.now());
+                        user.setLastSeen(LocalDateTime.now());
+                        user.setUserConnectedServerName("lobby");
+                        return user;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.severe("Error creating user: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public Optional<User> getUserById(int id) {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "SELECT * FROM mccloudadmin_users WHERE id = ? AND deleted = 'false'";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, id);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return Optional.of(mapResultSetToUser(rs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.severe("Error getting user by ID: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<User> getUserByUuid(UUID uuid) {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "SELECT * FROM mccloudadmin_users WHERE uuid = ? AND deleted = 'false'";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, uuid.toString());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return Optional.of(mapResultSetToUser(rs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.severe("Error getting user by UUID: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<User> getUserByUsername(String username) {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "SELECT * FROM mccloudadmin_users WHERE username = ? AND deleted = 'false'";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, username);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return Optional.of(mapResultSetToUser(rs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.severe("Error getting user by username: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public boolean updateUser(User user) {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "UPDATE mccloudadmin_users SET " +
+                    "username = ?, first_name = ?, last_name = ?, email = ?, " +
+                    "avatar = ?, credits = ?, background = ?, role = ?, " +
+                    "last_ip = ?, verified = ?, support_pin = ?, " +
+                    "2fa_enabled = ?, 2fa_key = ?, 2fa_blocked = ?, " +
+                    "discord_id = ?, github_id = ?, github_username = ?, " +
+                    "github_email = ?, github_linked = ?, discord_username = ?, " +
+                    "discord_global_name = ?, discord_email = ?, discord_linked = ?, " +
+                    "locked = ?, last_seen = ?, user_version = ?, " +
+                    "user_client_name = ?, user_connected_server_name = ? " +
+                    "WHERE id = ?";
+
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                int paramIndex = 1;
+                stmt.setString(paramIndex++, user.getUsername());
+                stmt.setString(paramIndex++, user.getFirstName());
+                stmt.setString(paramIndex++, user.getLastName());
+                stmt.setString(paramIndex++, user.getEmail());
+                stmt.setString(paramIndex++, user.getAvatar());
+                stmt.setInt(paramIndex++, user.getCredits());
+                stmt.setString(paramIndex++, user.getBackground());
+                stmt.setInt(paramIndex++, user.getRole());
+                stmt.setString(paramIndex++, user.getLastIp());
+                stmt.setString(paramIndex++, user.isVerified() ? "true" : "false");
+                stmt.setString(paramIndex++, user.getSupportPin());
+                stmt.setString(paramIndex++, user.isTwoFactorEnabled() ? "true" : "false");
+                stmt.setString(paramIndex++, user.getTwoFactorKey());
+                stmt.setString(paramIndex++, user.isTwoFactorBlocked() ? "true" : "false");
+                stmt.setString(paramIndex++, user.getDiscordId());
+                stmt.setObject(paramIndex++, user.getGithubId());
+                stmt.setString(paramIndex++, user.getGithubUsername());
+                stmt.setString(paramIndex++, user.getGithubEmail());
+                stmt.setString(paramIndex++, user.isGithubLinked() ? "true" : "false");
+                stmt.setString(paramIndex++, user.getDiscordUsername());
+                stmt.setString(paramIndex++, user.getDiscordGlobalName());
+                stmt.setString(paramIndex++, user.getDiscordEmail());
+                stmt.setString(paramIndex++, user.isDiscordLinked() ? "true" : "false");
+                stmt.setString(paramIndex++, user.isLocked() ? "true" : "false");
+                stmt.setTimestamp(paramIndex++, Timestamp.valueOf(user.getLastSeen()));
+                stmt.setString(paramIndex++, user.getUserVersion());
+                stmt.setString(paramIndex++, user.getUserClientName());
+                stmt.setString(paramIndex++, user.getUserConnectedServerName());
+                stmt.setInt(paramIndex, user.getId());
+
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            logger.severe("Error updating user: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean deleteUser(int id) {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "UPDATE mccloudadmin_users SET deleted = 'true' WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, id);
+                return stmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            logger.severe("Error deleting user: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "SELECT * FROM mccloudadmin_users WHERE deleted = 'false'";
+            try (PreparedStatement stmt = conn.prepareStatement(query);
+                    ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            logger.severe("Error getting all users: " + e.getMessage());
+        }
+        return users;
+    }
+
+    private User mapResultSetToUser(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setId(rs.getInt("id"));
+        user.setUsername(rs.getString("username"));
+        user.setFirstName(rs.getString("first_name"));
+        user.setLastName(rs.getString("last_name"));
+        user.setUserVersion(rs.getString("user_version"));
+        user.setUserClientName(rs.getString("user_client_name"));
+        user.setUserConnectedServerName(rs.getString("user_connected_server_name"));
+        user.setEmail(rs.getString("email"));
+        user.setAvatar(rs.getString("avatar"));
+        user.setCredits(rs.getInt("credits"));
+        user.setBackground(rs.getString("background"));
+        user.setUuid(UUID.fromString(rs.getString("uuid")));
+        user.setToken(rs.getString("token"));
+        user.setRole(rs.getInt("role"));
+        user.setFirstIp(rs.getString("first_ip"));
+        user.setLastIp(rs.getString("last_ip"));
+        user.setVerified(rs.getString("verified").equals("true"));
+        user.setSupportPin(rs.getString("support_pin"));
+        user.setTwoFactorEnabled(rs.getString("2fa_enabled").equals("true"));
+        user.setTwoFactorKey(rs.getString("2fa_key"));
+        user.setTwoFactorBlocked(rs.getString("2fa_blocked").equals("true"));
+        user.setDiscordId(rs.getString("discord_id"));
+        user.setGithubId(rs.getInt("github_id"));
+        user.setGithubUsername(rs.getString("github_username"));
+        user.setGithubEmail(rs.getString("github_email"));
+        user.setGithubLinked(rs.getString("github_linked").equals("true"));
+        user.setDiscordUsername(rs.getString("discord_username"));
+        user.setDiscordGlobalName(rs.getString("discord_global_name"));
+        user.setDiscordEmail(rs.getString("discord_email"));
+        user.setDiscordLinked(rs.getString("discord_linked").equals("true"));
+        user.setDeleted(rs.getString("deleted").equals("true"));
+        user.setLocked(rs.getString("locked").equals("true"));
+        user.setLastSeen(rs.getTimestamp("last_seen").toLocalDateTime());
+        user.setFirstSeen(rs.getTimestamp("first_seen").toLocalDateTime());
+        return user;
+    }
+}

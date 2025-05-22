@@ -1,60 +1,105 @@
 package systems.mythical.cloudcore.velocity;
 
+import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import systems.mythical.cloudcore.velocity.config.VelocityConfig;
-import systems.mythical.cloudcore.velocity.websocket.VelocityWebSocketClient;
+import systems.mythical.cloudcore.core.CloudCore;
+import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.events.JoinEvent;
+import systems.mythical.cloudcore.events.ServerSwitchEvent;
+import systems.mythical.cloudcore.velocity.events.OnConnect;
+import systems.mythical.cloudcore.velocity.events.OnServerSwitch;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 
 @Plugin(
     id = "cloudcore",
     name = "CloudCore",
-    version = "1.0.0",
-    description = "CloudCore for Velocity",
+    version = "1.0-SNAPSHOT",
+    description = "Adds cooldown to server switching",
     authors = {"MythicalSystems"}
 )
 public class CloudCoreVelocity {
     private final ProxyServer server;
     private final Logger logger;
-    private VelocityConfig config;
-    private VelocityWebSocketClient webSocketClient;
+    private final Path dataFolder;
+    private CloudCore cloudCore;
+    private DatabaseManager databaseManager;
 
-    public CloudCoreVelocity(ProxyServer server, Logger logger) {
+    @Inject
+    public CloudCoreVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataFolder) {
         this.server = server;
         this.logger = logger;
+        this.dataFolder = dataFolder;
     }
 
+    @SuppressWarnings("deprecation")
     @Subscribe
-    public void onProxyInitialize(ProxyInitializeEvent event) {
-        // Initialize configuration
-        File dataFolder = new File("plugins/CloudCore");
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs();
-        }
-        config = new VelocityConfig(dataFolder, logger);
+    public void onProxyInitialization(ProxyInitializeEvent event) {
+        logger.info("CloudCore has been initialized!");
+        logger.info("Forcing plugin to run in production mode.");
 
-        // Initialize WebSocket client
-        webSocketClient = new VelocityWebSocketClient(this, server);
-        webSocketClient.connect();
+        if (!server.getPluginManager().getPlugin("packetevents").isPresent()) {
+            logger.info("PacketEvents is not installed, disabling CloudCore Velocity plugin.");
+            try {
+                logger.info("Downloading PacketEvents...");
+                java.nio.file.Path pluginFolder = dataFolder.getParent();
+                java.net.URL url = new java.net.URL("https://github.com/retrooper/packetevents/releases/download/v2.8.0/packetevents-velocity-2.8.0.jar");
+                java.nio.file.Files.copy(url.openStream(), pluginFolder.resolve("packetevents-velocity-2.8.0.jar"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                logger.info("Successfully downloaded PacketEvents to plugins folder");
+            } catch (Exception e) {
+                logger.severe("Failed to download PacketEvents: " + e.getMessage());
+                e.printStackTrace();
+            }
+            server.shutdown();
+            return;
+        }
+
+        try {
+            // Initialize CloudCore
+            cloudCore = new CloudCore(dataFolder.toFile(), logger);
+            
+            // Initialize database connection
+            databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
+            
+            // Initialize JoinEvent
+            JoinEvent.initialize(databaseManager);
+            ServerSwitchEvent.initialize(databaseManager);
+            // Register events
+            server.getEventManager().register(this, new OnConnect());
+            server.getEventManager().register(this, new OnServerSwitch());
+
+            logger.info("CloudCore Velocity plugin has been enabled!");
+        } catch (Exception e) {
+            logger.severe("Failed to initialize CloudCore: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void onDisable() {
+        if (databaseManager != null) {
+            databaseManager.shutdown();
+        }
+        if (cloudCore != null) {
+            cloudCore.shutdown();
+        }
+        logger.info("CloudCore Velocity plugin has been disabled!");
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
-        if (webSocketClient != null) {
-            webSocketClient.disconnect();
-        }
-    }
-
-    public VelocityConfig getConfig() {
-        return config;
     }
 
     public Logger getLogger() {
         return logger;
+    }
+
+    public ProxyServer getServer() {
+        return server;
     }
 }

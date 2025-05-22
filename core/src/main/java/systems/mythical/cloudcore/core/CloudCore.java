@@ -24,6 +24,8 @@ public class CloudCore {
         logger.info("CloudCore has been initialized!");
         if (config.isDebugMode()) {
             logger.info("Debug mode is enabled");
+        } else {
+            logger.info("Forcing plugin to run in production mode.");
         }
     }
     

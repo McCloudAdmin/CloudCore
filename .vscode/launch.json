@@ -1,10 +1,10 @@
 {
     "configurations": [
     {
-        "type": "java",
-        "name": "Launch Java Program",
+        "command": "./build.sh",
+        "name": "Run build.sh",
         "request": "launch",
-        "mainClass": "systems.mythical.mccloudadmin.Main",
+        "type": "node-terminal"
     }
     ]
 }

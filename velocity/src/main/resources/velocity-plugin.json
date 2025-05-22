@@ -7,5 +7,6 @@
     "MythicalSystems"
   ],
   "dependencies": [],
-  "main": "systems.mythical.cloudcore.velocity.CloudCoreVelocity"
+  "main": "systems.mythical.cloudcore.velocity.CloudCoreVelocity",
+  "api-version": "3.8.0"
 } 

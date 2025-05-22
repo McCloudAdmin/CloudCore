@@ -1,5 +1,5 @@
 name: CloudCore
-main: systems.mythical.cloudcore.bungee.CloudCoreBungeeCord
+main: systems.mythical.cloudcore.bungee.CloudCoreBungee
 version: 1.0-SNAPSHOT
 author: MythicalSystems
 description: Adds cooldown to server switching

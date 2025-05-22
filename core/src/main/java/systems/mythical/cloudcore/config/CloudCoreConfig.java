@@ -3,6 +3,7 @@ package systems.mythical.cloudcore.config;
 import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -12,14 +13,16 @@ public class CloudCoreConfig {
     private final Map<String, Object> config;
     private final File configFile;
     private final Logger logger;
+    private final Yaml yaml;
 
     private CloudCoreConfig(File dataFolder, Logger logger) {
         this.logger = logger;
         this.configFile = new File(dataFolder, "config.yml");
+        this.yaml = new Yaml();
         this.config = loadConfig();
     }
 
-    public static synchronized CloudCoreConfig getInstance(File dataFolder, Logger logger) {
+    public static CloudCoreConfig getInstance(File dataFolder, Logger logger) {
         if (instance == null) {
             instance = new CloudCoreConfig(dataFolder, logger);
         }
@@ -29,14 +32,13 @@ public class CloudCoreConfig {
     private Map<String, Object> loadConfig() {
         try {
             if (!configFile.exists()) {
-                // Create default config
                 Map<String, Object> defaultConfig = createDefaultConfig();
                 saveConfig(defaultConfig);
                 return defaultConfig;
             }
 
             try (FileInputStream input = new FileInputStream(configFile)) {
-                return new Yaml().load(input);
+                return yaml.load(input);
             }
         } catch (Exception e) {
             logger.severe("Error loading configuration: " + e.getMessage());
@@ -46,7 +48,7 @@ public class CloudCoreConfig {
 
     private void saveConfig(Map<String, Object> config) {
         try {
-            new Yaml().dump(config, new java.io.FileWriter(configFile));
+            yaml.dump(config, new FileWriter(configFile));
         } catch (Exception e) {
             logger.severe("Error saving configuration: " + e.getMessage());
         }
@@ -55,17 +57,23 @@ public class CloudCoreConfig {
     private Map<String, Object> createDefaultConfig() {
         Map<String, Object> config = new HashMap<>();
         
-        // Plugin settings
-        Map<String, Object> plugin = new HashMap<>();
-        plugin.put("debug_mode", false);
-        plugin.put("update_check", true);
-        config.put("plugin", plugin);
-
+        // Debug mode
+        config.put("debug", false);
+        
+        // Database settings
+        Map<String, Object> database = new HashMap<>();
+        database.put("host", "localhost");
+        database.put("port", 3306);
+        database.put("name", "mccloudadmin");
+        database.put("username", "mythical");
+        database.put("password", "");
+        config.put("database", database);
+        
         return config;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T get(String path) {
+    private <T> T get(String path, T defaultValue) {
         String[] parts = path.split("\\.");
         Object current = config;
 
@@ -73,19 +81,34 @@ public class CloudCoreConfig {
             if (current instanceof Map) {
                 current = ((Map<String, Object>) current).get(part);
             } else {
-                return null;
+                return defaultValue;
             }
         }
 
-        return (T) current;
+        return current != null ? (T) current : defaultValue;
     }
 
-    // Plugin settings
     public boolean isDebugMode() {
-        return get("plugin.debug_mode");
+        return get("debug", false);
     }
 
-    public boolean isUpdateCheckEnabled() {
-        return get("plugin.update_check");
+    public String getDatabaseHost() {
+        return get("database.host", "localhost");
+    }
+
+    public int getDatabasePort() {
+        return get("database.port", 3306);
+    }
+
+    public String getDatabaseName() {
+        return get("database.name", "cloudcore");
+    }
+
+    public String getDatabaseUsername() {
+        return get("database.username", "root");
+    }
+
+    public String getDatabasePassword() {
+        return get("database.password", "password");
     }
 } 

@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # Build all modules
-mvn clean package
+mvn clean package -X
 
 if [ $? -ne 0 ]; then
     echo "Build failed!"
     exit 1
 fi
+killall java
 
 # Clean up old files
 rm -f CloudCore.jar

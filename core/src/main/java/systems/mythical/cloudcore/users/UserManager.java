@@ -29,8 +29,8 @@ public class UserManager {
 
     public User createUser(String username, UUID uuid, String ip) {
         try (Connection conn = databaseManager.getConnection()) {
-            String query = "INSERT INTO mccloudadmin_users (username, first_ip, last_ip, uuid, token, user_connected_server_name) " +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO mccloudadmin_users (username, first_ip, last_ip, uuid, token, user_connected_server_name, user_online) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
             String token = UUID.randomUUID().toString();
 
@@ -41,6 +41,7 @@ public class UserManager {
                 stmt.setString(4, uuid.toString());
                 stmt.setString(5, token);
                 stmt.setString(6, "lobby"); // Default connected server
+                stmt.setString(7, "true"); // Default online status
 
                 stmt.executeUpdate();
 
@@ -60,6 +61,7 @@ public class UserManager {
                         user.setFirstSeen(LocalDateTime.now());
                         user.setLastSeen(LocalDateTime.now());
                         user.setUserConnectedServerName("lobby");
+                        user.setUserOnline(true);
                         return user;
                     }
                 }
@@ -132,7 +134,7 @@ public class UserManager {
                     "github_email = ?, github_linked = ?, discord_username = ?, " +
                     "discord_global_name = ?, discord_email = ?, discord_linked = ?, " +
                     "locked = ?, last_seen = ?, user_version = ?, " +
-                    "user_client_name = ?, user_connected_server_name = ? " +
+                    "user_client_name = ?, user_connected_server_name = ?, user_online = ? " +
                     "WHERE id = ?";
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -165,6 +167,7 @@ public class UserManager {
                 stmt.setString(paramIndex++, user.getUserVersion());
                 stmt.setString(paramIndex++, user.getUserClientName());
                 stmt.setString(paramIndex++, user.getUserConnectedServerName());
+                stmt.setString(paramIndex++, user.isUserOnline() ? "true" : "false");
                 stmt.setInt(paramIndex, user.getId());
 
                 return stmt.executeUpdate() > 0;
@@ -204,6 +207,20 @@ public class UserManager {
         return users;
     }
 
+    public boolean markAllUsersOffline() {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "UPDATE mccloudadmin_users SET user_online = 'false' WHERE deleted = 'false'";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                int updated = stmt.executeUpdate();
+                logger.info("Marked " + updated + " users as offline");
+                return updated > 0;
+            }
+        } catch (SQLException e) {
+            logger.severe("Error marking users as offline: " + e.getMessage());
+            return false;
+        }
+    }
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getInt("id"));
@@ -213,6 +230,7 @@ public class UserManager {
         user.setUserVersion(rs.getString("user_version"));
         user.setUserClientName(rs.getString("user_client_name"));
         user.setUserConnectedServerName(rs.getString("user_connected_server_name"));
+        user.setUserOnline(rs.getString("user_online").equals("true"));
         user.setEmail(rs.getString("email"));
         user.setAvatar(rs.getString("avatar"));
         user.setCredits(rs.getInt("credits"));

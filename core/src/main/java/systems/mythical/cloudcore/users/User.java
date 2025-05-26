@@ -11,6 +11,7 @@ public class User {
     private String userVersion;
     private String userClientName;
     private String userConnectedServerName;
+    private boolean userOnline;
     private String email;
     private String avatar;
     private int credits;
@@ -60,6 +61,9 @@ public class User {
 
     public String getUserConnectedServerName() { return userConnectedServerName; }
     public void setUserConnectedServerName(String userConnectedServerName) { this.userConnectedServerName = userConnectedServerName; }
+
+    public boolean isUserOnline() { return userOnline; }
+    public void setUserOnline(boolean userOnline) { this.userOnline = userOnline; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }

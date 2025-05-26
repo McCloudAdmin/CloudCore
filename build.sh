@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Build all modules
-mvn clean package -X
+mvn clean package
 
 if [ $? -ne 0 ]; then
     echo "Build failed!"
@@ -72,3 +72,5 @@ trap cleanup SIGINT SIGTERM
 
 # Wait for user to press Ctrl+C
 wait
+
+clear

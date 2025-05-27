@@ -42,7 +42,7 @@ public class MessageManager {
         return instance;
     }
 
-    private void refreshMessages() {
+    public void refreshMessages() {
         try (Connection conn = databaseManager.getConnection()) {
             String query = "SELECT name, value FROM mccloudadmin_messages WHERE deleted = 'false'";
             try (PreparedStatement stmt = conn.prepareStatement(query);

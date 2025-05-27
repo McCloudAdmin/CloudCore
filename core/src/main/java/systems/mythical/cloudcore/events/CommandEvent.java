@@ -18,7 +18,7 @@ public class CommandEvent {
     private static CloudSettings cloudSettings;
 
     // Permission nodes
-    public static final String COMMAND_BYPASS_PERMISSION = "cloudadmin.command.bypass";
+    public static final String COMMAND_BYPASS_PERMISSION = "cloudcore.command.bypass";
 
     // Settings
     private static final CommonSettings.BooleanSetting LOG_COMMAND_LOGS = new CommonSettings.BooleanSetting("log_command_logs", true);

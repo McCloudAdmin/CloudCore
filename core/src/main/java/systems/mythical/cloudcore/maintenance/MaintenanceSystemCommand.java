@@ -26,14 +26,4 @@ public class MaintenanceSystemCommand {
         if (maintenanceManager == null) return false;
         return maintenanceManager.removeMaintenance(uuid);
     }
-
-    public static boolean lockMaintenance(UUID uuid) {
-        if (maintenanceManager == null) return false;
-        return maintenanceManager.lockMaintenance(uuid);
-    }
-
-    public static boolean unlockMaintenance(UUID uuid) {
-        if (maintenanceManager == null) return false;
-        return maintenanceManager.unlockMaintenance(uuid);
-    }
 } 

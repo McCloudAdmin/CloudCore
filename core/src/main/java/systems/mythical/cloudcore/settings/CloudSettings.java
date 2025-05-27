@@ -40,7 +40,7 @@ public class CloudSettings {
         return instance;
     }
 
-    private void refreshSettings() {
+    public void refreshSettings() {
         try (Connection conn = databaseManager.getConnection()) {
             String query = "SELECT name, value FROM mccloudadmin_settings WHERE deleted = 'false'";
             try (PreparedStatement stmt = conn.prepareStatement(query);
@@ -69,20 +69,43 @@ public class CloudSettings {
         }
     }
 
+    public boolean settingExists(String name) {
+        synchronized (settingsCache) {
+            return settingsCache.containsKey(name);
+        }
+    }
+
     public void setSetting(String name, String value) {
         try (Connection conn = databaseManager.getConnection()) {
-            String query = "INSERT INTO mccloudadmin_settings (name, value) VALUES (?, ?) " +
-                          "ON DUPLICATE KEY UPDATE value = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, name);
-                stmt.setString(2, value);
-                stmt.setString(3, value);
-                stmt.executeUpdate();
-                
-                synchronized (settingsCache) {
-                    settingsCache.put(name, value);
+            // First check if the setting exists
+            String checkQuery = "SELECT id FROM mccloudadmin_settings WHERE name = ? AND deleted = 'false'";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+                checkStmt.setString(1, name);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next()) {
+                        // Setting exists, update it
+                        String updateQuery = "UPDATE mccloudadmin_settings SET value = ? WHERE name = ? AND deleted = 'false'";
+                        try (PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
+                            updateStmt.setString(1, value);
+                            updateStmt.setString(2, name);
+                            updateStmt.executeUpdate();
+                        }
+                    } else {
+                        // Setting doesn't exist, insert it
+                        String insertQuery = "INSERT INTO mccloudadmin_settings (name, value) VALUES (?, ?)";
+                        try (PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
+                            insertStmt.setString(1, name);
+                            insertStmt.setString(2, value);
+                            insertStmt.executeUpdate();
+                        }
+                    }
                 }
             }
+            
+            synchronized (settingsCache) {
+                settingsCache.put(name, value);
+            }
+            logger.info("Successfully set value for setting: " + name);
         } catch (SQLException e) {
             logger.severe("Error setting value for " + name + ": " + e.getMessage());
         }
@@ -90,13 +113,26 @@ public class CloudSettings {
 
     public void deleteSetting(String name) {
         try (Connection conn = databaseManager.getConnection()) {
-            String query = "UPDATE mccloudadmin_settings SET deleted = 'true' WHERE name = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, name);
-                stmt.executeUpdate();
-                
-                synchronized (settingsCache) {
-                    settingsCache.remove(name);
+            // First check if the setting exists
+            String checkQuery = "SELECT id FROM mccloudadmin_settings WHERE name = ? AND deleted = 'false'";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+                checkStmt.setString(1, name);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next()) {
+                        // Setting exists, mark it as deleted
+                        String updateQuery = "UPDATE mccloudadmin_settings SET deleted = 'true' WHERE name = ?";
+                        try (PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
+                            updateStmt.setString(1, name);
+                            updateStmt.executeUpdate();
+                            
+                            synchronized (settingsCache) {
+                                settingsCache.remove(name);
+                            }
+                            logger.info("Successfully deleted setting: " + name);
+                        }
+                    } else {
+                        logger.info("Setting " + name + " does not exist, skipping delete");
+                    }
                 }
             }
         } catch (SQLException e) {

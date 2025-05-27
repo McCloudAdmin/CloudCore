@@ -8,34 +8,23 @@ import net.md_5.bungee.api.plugin.Command;
 import systems.mythical.cloudcore.console.ConsoleCommand;
 import systems.mythical.cloudcore.bungee.CloudCoreBungee;
 import systems.mythical.cloudcore.messages.MessageManager;
-import systems.mythical.cloudcore.settings.CloudSettings;
-import systems.mythical.cloudcore.settings.CommonSettings;
+import systems.mythical.cloudcore.core.CloudCoreConstants.Messages;
 
 public class ProxyConsoleCommand extends Command {
     private final CloudCoreBungee plugin;
     private final MessageManager messageManager;
-    private final CloudSettings cloudSettings;
-    private static final CommonSettings.BooleanSetting ENABLE_CONSOLE_COMMAND = new CommonSettings.BooleanSetting("enable_console_command", true);
 
     public ProxyConsoleCommand(CloudCoreBungee plugin) {
         super("proxyconsole", null, "pcex");
         this.plugin = plugin;
         this.messageManager = MessageManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
-        this.cloudSettings = CloudSettings.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        // Check if console commands are enabled
-        if (!ENABLE_CONSOLE_COMMAND.parseValue(cloudSettings.getSetting(ENABLE_CONSOLE_COMMAND.getName()))) {
-            sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', 
-                messageManager.getColoredMessage("console.disabled"))));
-            return;
-        }
-
         if (!(sender instanceof ProxiedPlayer)) {
             sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', 
-                messageManager.getColoredMessage("console.players_only"))));
+                messageManager.getColoredMessage(Messages.CONSOLE_PLAYERS_ONLY))));
             return;
         }
 
@@ -43,7 +32,7 @@ public class ProxyConsoleCommand extends Command {
 
         if (args.length == 0) {
             player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', 
-                messageManager.getColoredMessage("console.usage"))));
+                messageManager.getColoredMessage(Messages.CONSOLE_USAGE))));
             return;
         }
 
@@ -53,13 +42,13 @@ public class ProxyConsoleCommand extends Command {
         // Check if the player is allowed to execute console commands
         if (!ConsoleCommand.onConsoleCommand(player.getUniqueId(), command)) {
             player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', 
-                messageManager.getColoredMessage("console.not_allowed"))));
+                messageManager.getColoredMessage(Messages.CONSOLE_NOT_ALLOWED))));
             return;
         }
 
         // Execute the command as console
         plugin.getProxy().getPluginManager().dispatchCommand(plugin.getProxy().getConsole(), command);
         player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', 
-            messageManager.getColoredMessage("console.executed", command))));
+            messageManager.getColoredMessage(Messages.CONSOLE_EXECUTED, command))));
     }
 } 

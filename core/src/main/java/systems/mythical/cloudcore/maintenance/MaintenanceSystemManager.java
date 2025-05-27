@@ -25,7 +25,7 @@ public class MaintenanceSystemManager {
 
     public boolean isInMaintenance(UUID uuid) {
         try (Connection conn = databaseManager.getConnection()) {
-            String query = "SELECT id FROM mccloudadmin_maintenance_system WHERE uuid = ? AND locked = 'false' AND deleted = 'false'";
+            String query = "SELECT id FROM mccloudadmin_maintenance_system WHERE uuid = ?";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -39,6 +39,12 @@ public class MaintenanceSystemManager {
     }
 
     public boolean addMaintenance(UUID uuid) {
+        // First check if the UUID already exists
+        if (isInMaintenance(uuid)) {
+            logger.info("UUID " + uuid + " is already in maintenance list, skipping...");
+            return false;
+        }
+
         try (Connection conn = databaseManager.getConnection()) {
             String query = "INSERT INTO mccloudadmin_maintenance_system (uuid) VALUES (?)";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -55,7 +61,7 @@ public class MaintenanceSystemManager {
 
     public boolean removeMaintenance(UUID uuid) {
         try (Connection conn = databaseManager.getConnection()) {
-            String query = "UPDATE mccloudadmin_maintenance_system SET deleted = 'true' WHERE uuid = ?";
+            String query = "DELETE FROM mccloudadmin_maintenance_system WHERE uuid = ?";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 stmt.executeUpdate();
@@ -68,33 +74,25 @@ public class MaintenanceSystemManager {
         }
     }
 
-    public boolean lockMaintenance(UUID uuid) {
+    public String getMaintenanceList() {
         try (Connection conn = databaseManager.getConnection()) {
-            String query = "UPDATE mccloudadmin_maintenance_system SET locked = 'true' WHERE uuid = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, uuid.toString());
-                stmt.executeUpdate();
-                logger.info("Locked maintenance entry for: " + uuid);
-                return true;
+            String query = "SELECT uuid FROM mccloudadmin_maintenance_system ORDER BY id";
+            try (PreparedStatement stmt = conn.prepareStatement(query);
+                 ResultSet rs = stmt.executeQuery()) {
+                StringBuilder list = new StringBuilder();
+                boolean first = true;
+                while (rs.next()) {
+                    if (!first) {
+                        list.append(",");
+                    }
+                    list.append(rs.getString("uuid"));
+                    first = false;
+                }
+                return list.toString();
             }
         } catch (SQLException e) {
-            logger.severe("Error locking maintenance entry for " + uuid + ": " + e.getMessage());
-            return false;
-        }
-    }
-
-    public boolean unlockMaintenance(UUID uuid) {
-        try (Connection conn = databaseManager.getConnection()) {
-            String query = "UPDATE mccloudadmin_maintenance_system SET locked = 'false' WHERE uuid = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, uuid.toString());
-                stmt.executeUpdate();
-                logger.info("Unlocked maintenance entry for: " + uuid);
-                return true;
-            }
-        } catch (SQLException e) {
-            logger.severe("Error unlocking maintenance entry for " + uuid + ": " + e.getMessage());
-            return false;
+            logger.severe("Error getting maintenance list: " + e.getMessage());
+            return "";
         }
     }
 } 

@@ -26,8 +26,8 @@ public class JoinEvent {
     private static PermissionChecker permissionChecker;
 
     // Permission nodes
-    public static final String VPN_BYPASS_PERMISSION = "cloudadmin.vpn.bypass";
-    public static final String ALTS_BYPASS_PERMISSION = "cloudadmin.alts.bypass";
+    public static final String VPN_BYPASS_PERMISSION = "cloudcore.vpn.bypass";
+    public static final String ALTS_BYPASS_PERMISSION = "cloudcore.alts.bypass";
 
     public static void initialize(DatabaseManager databaseManager) {
         userManager = UserManager.getInstance(databaseManager, logger);

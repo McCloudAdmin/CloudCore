@@ -9,18 +9,18 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import systems.mythical.cloudcore.reports.ReportManager;
 import systems.mythical.cloudcore.messages.MessageManager;
 import systems.mythical.cloudcore.velocity.CloudCoreVelocity;
+import systems.mythical.cloudcore.core.CloudCoreConstants.Messages;
+import systems.mythical.cloudcore.core.CloudCoreConstants.Permissions;
 
 import java.util.List;
 
 public class ReportCommand implements SimpleCommand {
-    private final CloudCoreVelocity plugin;
     private final ProxyServer server;
     private final ReportManager reportManager;
     private final MessageManager messageManager;
     private final LegacyComponentSerializer legacySerializer;
 
     public ReportCommand(CloudCoreVelocity plugin) {
-        this.plugin = plugin;
         this.server = plugin.getServer();
         this.reportManager = ReportManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
         this.messageManager = MessageManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
@@ -39,13 +39,8 @@ public class ReportCommand implements SimpleCommand {
 
         Player player = (Player) source;
 
-        if (!reportManager.isReportSystemEnabled()) {
-            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage("report.system_disabled")));
-            return;
-        }
-
         if (args.length < 2) {
-            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage("report.usage")));
+            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.REPORT_USAGE)));
             return;
         }
 
@@ -53,18 +48,18 @@ public class ReportCommand implements SimpleCommand {
         Player target = server.getPlayer(targetName).orElse(null);
 
         if (target == null) {
-            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage("report.player_not_found")));
+            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.REPORT_PLAYER_NOT_FOUND)));
             return;
         }
 
         if (target == player) {
-            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage("report.cannot_report_self")));
+            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.REPORT_CANNOT_REPORT_SELF)));
             return;
         }
 
         if (!reportManager.canReport(player.getUniqueId())) {
             long remainingCooldown = reportManager.getRemainingCooldown(player.getUniqueId());
-            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage("report.cooldown", remainingCooldown)));
+            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.REPORT_COOLDOWN, remainingCooldown)));
             return;
         }
 
@@ -72,19 +67,19 @@ public class ReportCommand implements SimpleCommand {
         String reason = String.join(" ", args).substring(targetName.length() + 1);
 
         if (reportManager.createReport(player.getUniqueId(), target.getUniqueId(), reason)) {
-            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage("report.success")));
+            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.REPORT_SUCCESS)));
             
             // Notify staff members
-            Component staffNotification = legacySerializer.deserialize(messageManager.getColoredMessage("report.staff_notification",
+            Component staffNotification = legacySerializer.deserialize(messageManager.getColoredMessage(Messages.REPORT_STAFF_NOTIFICATION,
                 player.getUsername(), target.getUsername(), reason));
             
             for (Player staff : server.getAllPlayers()) {
-                if (staff.hasPermission("cloudadmin.report.notify")) {
+                if (staff.hasPermission(Permissions.REPORT_NOTIFY)) {
                     staff.sendMessage(staffNotification);
                 }
             }
         } else {
-            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage("report.error")));
+            player.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.REPORT_ERROR)));
         }
     }
 
@@ -95,6 +90,6 @@ public class ReportCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission("cloudadmin.report");
+        return invocation.source().hasPermission(Permissions.REPORT_USE);
     }
 } 

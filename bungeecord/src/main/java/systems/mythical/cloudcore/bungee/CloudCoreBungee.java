@@ -2,6 +2,7 @@ package systems.mythical.cloudcore.bungee;
 
 import net.md_5.bungee.api.plugin.Plugin;
 import systems.mythical.cloudcore.core.CloudCore;
+import systems.mythical.cloudcore.core.CloudCoreConstants.Settings;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import systems.mythical.cloudcore.events.JoinEvent;
 import systems.mythical.cloudcore.events.ServerSwitchEvent;
@@ -22,6 +23,10 @@ import systems.mythical.cloudcore.events.CommandEvent;
 import systems.mythical.cloudcore.bungee.events.OnCommand;
 import systems.mythical.cloudcore.bungee.commands.AlertCommand;
 import systems.mythical.cloudcore.bungee.commands.ReportCommand;
+import systems.mythical.cloudcore.settings.CloudSettings;
+import systems.mythical.cloudcore.settings.SettingsManager;
+import systems.mythical.cloudcore.settings.CommonSettings;
+import systems.mythical.cloudcore.bungee.commands.CloudCoreCommand;
 
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -67,14 +72,55 @@ public class CloudCoreBungee extends Plugin {
             // Initialize CloudCore
             cloudCore = new CloudCore(getDataFolder(), logger);
 
-            // Initialize database tasks
-            initializeDatabaseTasks();
+            // Initialize database
+            databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
+            logger.info("Database connection pool initialized successfully!");
+
+            // Initialize settings
+            CloudSettings cloudSettings = CloudSettings.getInstance(databaseManager, logger);
+            SettingsManager settingsManager = SettingsManager.getInstance(cloudSettings, logger);
+
+            // Initialize events based on settings
+            CommonSettings.BooleanSetting logChatEvents = new CommonSettings.BooleanSetting(Settings.LOG_CHAT, true);
+            CommonSettings.BooleanSetting logCommandEvents = new CommonSettings.BooleanSetting(Settings.LOG_COMMANDS,
+                    true);
+
+            JoinEvent.initialize(databaseManager);
+            logger.info("[CloudCore] Join events initialized");
+
+            ServerSwitchEvent.initialize(databaseManager);
+            logger.info("[CloudCore] Server switch events initialized");
+
+            QuitEvent.initialize(databaseManager);
+            logger.info("[CloudCore] Quit events initialized");
+
+            if (settingsManager.getValue(logChatEvents)) {
+                ChatEvent.initialize(databaseManager);
+                logger.info("[CloudCore] Chat events initialized");
+            }
+
+            if (settingsManager.getValue(logCommandEvents)) {
+                CommandEvent.initialize(databaseManager);
+                logger.info("[CloudCore] Command events initialized");
+                ConsoleCommand.initialize(databaseManager);
+                logger.info("[CloudCore] Console commands initialized");
+            }
+
+            MaintenanceSystemCommand.initialize(databaseManager, logger);
+
+            // Register events only if they are enabled
+            getProxy().getPluginManager().registerListener(this, new OnConnect(databaseManager, logger));
+            getProxy().getPluginManager().registerListener(this, new OnServerSwitch());
+            getProxy().getPluginManager().registerListener(this, new OnQuit());
+            if (settingsManager.getValue(logChatEvents)) {
+                getProxy().getPluginManager().registerListener(this, new OnChat());
+            }
+            if (settingsManager.getValue(logCommandEvents)) {
+                getProxy().getPluginManager().registerListener(this, new OnCommand());
+            }
 
             // Initialize commands
-            initializeCommands();
-
-            // Register events
-            registerEvents();
+            initializeCommands(settingsManager);
 
             logger.info("CloudCore BungeeCord plugin has been enabled!");
         } catch (Exception e) {
@@ -97,47 +143,21 @@ public class CloudCoreBungee extends Plugin {
         logger.info("CloudCore BungeeCord plugin has been disabled!");
     }
 
-    /**
-     * Initializes the database tasks
-     * 
-     * @author MythicalSystems
-     */
-    public void initializeDatabaseTasks() {
-        // Initialize database
-        databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
-        logger.info("Database connection pool initialized successfully!");
-
-        // Initialize events
-        JoinEvent.initialize(databaseManager);
-        ServerSwitchEvent.initialize(databaseManager);
-        QuitEvent.initialize(databaseManager);
-        ChatEvent.initialize(databaseManager);
-        CommandEvent.initialize(databaseManager);
-        ConsoleCommand.initialize(databaseManager);
-        MaintenanceSystemCommand.initialize(databaseManager, logger);
-    }
-
-    public void initializeCommands() {
-        // Register proxy console command
-        getProxy().getPluginManager().registerCommand(this, new ProxyConsoleCommand(this));
-        // Register alert command
-        getProxy().getPluginManager().registerCommand(this, new AlertCommand(this));
-        // Register report command
-        getProxy().getPluginManager().registerCommand(this, new ReportCommand(this));
-    }
-
-
-    /**
-     * Registers all events for the plugin
-     * 
-     * @author MythicalSystems
-     */
-    public void registerEvents() {
-        getProxy().getPluginManager().registerListener(this, new OnConnect(databaseManager, logger));
-        getProxy().getPluginManager().registerListener(this, new OnServerSwitch());
-        getProxy().getPluginManager().registerListener(this, new OnQuit());
-        getProxy().getPluginManager().registerListener(this, new OnChat());
-        getProxy().getPluginManager().registerListener(this, new OnCommand());
+    public void initializeCommands(SettingsManager settingsManager) {
+        // Register CloudCore command
+        getProxy().getPluginManager().registerCommand(this, new CloudCoreCommand(this));
+        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.ENABLE_ALERT_COMMAND, false))) {
+            // Register alert command
+            getProxy().getPluginManager().registerCommand(this, new AlertCommand(this));
+        }
+        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.REPORT_SYSTEM_ENABLED, false))) {
+            // Register report command
+            getProxy().getPluginManager().registerCommand(this, new ReportCommand(this));
+        }
+        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.ENABLE_CONSOLE_COMMAND, false))) {
+            // Register proxy console command
+            getProxy().getPluginManager().registerCommand(this, new ProxyConsoleCommand(this));
+        }
     }
 
     /**

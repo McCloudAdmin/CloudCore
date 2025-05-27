@@ -16,7 +16,7 @@ public class ChatEvent {
     private static CloudSettings cloudSettings;
 
     // Permission nodes
-    public static final String CHAT_BYPASS_PERMISSION = "cloudadmin.chat.bypass";
+    public static final String CHAT_BYPASS_PERMISSION = "cloudcore.chat.bypass";
 
     // Settings
     private static final CommonSettings.BooleanSetting LOG_CHAT_LOGS = new CommonSettings.BooleanSetting("log_chatlogs", true);

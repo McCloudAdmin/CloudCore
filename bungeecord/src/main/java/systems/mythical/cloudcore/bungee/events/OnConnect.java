@@ -10,6 +10,7 @@ import systems.mythical.cloudcore.settings.CloudSettings;
 import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.maintenance.MaintenanceSystemCommand;
 import systems.mythical.cloudcore.messages.MessageManager;
+import systems.mythical.cloudcore.core.CloudCoreConstants.Messages;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -47,7 +48,7 @@ public class OnConnect implements Listener {
             CommonSettings.BooleanSetting ENABLE_MAINTENANCE = new CommonSettings.BooleanSetting("enable_maintenance", false);
             boolean maintenanceEnabled = ENABLE_MAINTENANCE.parseValue(settings.getSetting(ENABLE_MAINTENANCE.getName()));
             if (maintenanceEnabled && !MaintenanceSystemCommand.isInMaintenance(event.getPlayer().getUniqueId())) {
-                String kickMsg = messageManager.getColoredMessage("maintenance.kick_message");
+                String kickMsg = messageManager.getColoredMessage(Messages.CONNECTION_BLOCKED_MAINTENANCE);
                 event.getPlayer().disconnect(TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', kickMsg)));
                 pluginLogger.info("Kicked " + event.getPlayer().getName() + " due to maintenance mode.");
                 return;

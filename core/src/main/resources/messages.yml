@@ -1,9 +1,0 @@
-report:
-  system_disabled: "&cThe report system is currently disabled."
-  usage: "&cUsage: /report <player> <reason>"
-  player_not_found: "&cPlayer not found."
-  cannot_report_self: "&cYou cannot report yourself."
-  cooldown: "&cYou must wait %d seconds before submitting another report."
-  success: "&aYour report has been submitted successfully."
-  error: "&cAn error occurred while submitting your report. Please try again later."
-  staff_notification: "&e[Report] &f%s &7reported &f%s &7for: &f%s" 

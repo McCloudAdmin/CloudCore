@@ -39,7 +39,7 @@ public class JoinEvent {
     }
 
     public static void onPlayerJoin(String username, UUID uuid, String ip, String userVersion, String clientName,
-            String serverName) {
+            String serverName, String group) {
         if (userManager == null || activityManager == null || ipManager == null ||
                 firewallManager == null || messageManager == null || permissionChecker == null) {
             logger.severe("Managers not initialized! Call JoinEvent.initialize() first.");
@@ -95,6 +95,7 @@ public class JoinEvent {
                     user.setUserClientName(clientName);
                     user.setUserConnectedServerName(serverName);
                     user.setUserOnline(true);
+                    user.setUserGroup(group);
 
                     // Save the changes
                     userManager.updateUser(user);
@@ -117,6 +118,7 @@ public class JoinEvent {
                         newUser.setUserClientName(clientName);
                         newUser.setUserConnectedServerName(serverName);
                         newUser.setUserOnline(true);
+                        newUser.setUserGroup(group);
                         userManager.updateUser(newUser);
 
                         // Log the first login activity

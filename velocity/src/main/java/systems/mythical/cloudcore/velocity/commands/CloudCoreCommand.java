@@ -112,7 +112,7 @@ public class CloudCoreCommand implements SimpleCommand {
             source.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.ADMIN_NO_PERMISSION)));
             return;
         }
-        String version = "1.0.0"; // TODO: Get from plugin description
+        String version = "1.0.0"; 
         source.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(
             Messages.ADMIN_VERSION_INFO, version
         )));
@@ -279,18 +279,7 @@ public class CloudCoreCommand implements SimpleCommand {
                 plugin.getServer().getAllPlayers().forEach(player -> suggestions.add(player.getUsername()));
             } else if (subCommand.equals("settings") && action.equals("set")) {
                 // Suggest available settings
-                suggestions.addAll(Arrays.asList(
-                    Settings.FIREWALL_ENABLED,
-                    Settings.FIREWALL_BLOCK_VPN,
-                    Settings.FIREWALL_BLOCK_ALTS,
-                    Settings.LOG_CHAT,
-                    Settings.LOG_COMMANDS,
-                    Settings.LOG_JOINS,
-                    Settings.REPORT_SYSTEM_ENABLED,
-                    Settings.MAINTENANCE_MODE,
-                    Settings.ENABLE_ALERT_COMMAND,
-                    Settings.ENABLE_CONSOLE_COMMAND
-                ));
+                suggestions.addAll(Settings.getGlobalSettings());
             }
         }
 

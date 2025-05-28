@@ -28,6 +28,19 @@
             <version>2.8.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.gitlab.ruany</groupId>
+            <artifactId>LiteBansAPI</artifactId>
+            <version>0.6.1</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

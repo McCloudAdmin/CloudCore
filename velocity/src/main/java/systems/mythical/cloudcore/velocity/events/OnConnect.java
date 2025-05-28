@@ -12,6 +12,8 @@ import systems.mythical.cloudcore.maintenance.MaintenanceSystemCommand;
 import systems.mythical.cloudcore.messages.MessageManager;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import net.kyori.adventure.text.Component;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
 
 import java.util.logging.Logger;
 import java.util.UUID;
@@ -34,6 +36,12 @@ public class OnConnect {
             UUID uuid = player.getUniqueId();
             String ip = player.getRemoteAddress().getAddress().getHostAddress();
             
+            LuckPerms luckPerms = LuckPermsProvider.get();
+            String group = luckPerms.getUserManager().getUser(uuid).getPrimaryGroup();
+            if (group == null || group.isEmpty()) {
+                group = "default";
+            }
+
             // Maintenance check
             CloudSettings settings = CloudSettings.getInstance(databaseManager, pluginLogger);
             MessageManager messageManager = MessageManager.getInstance(databaseManager, pluginLogger);
@@ -59,9 +67,10 @@ public class OnConnect {
                 ip,
                 userVersion,
                 clientName,
-                serverName
+                serverName,
+                group
             );
-            logger.info("Processed join event for player: " + username);
+            logger.info("Processed join event for player: " + username + " with group: " + group);
         } catch (Exception e) {
             logger.severe("Error processing join event: " + e.getMessage());
             e.printStackTrace();

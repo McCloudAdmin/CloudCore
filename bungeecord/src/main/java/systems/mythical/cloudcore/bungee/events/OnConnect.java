@@ -12,6 +12,8 @@ import systems.mythical.cloudcore.maintenance.MaintenanceSystemCommand;
 import systems.mythical.cloudcore.messages.MessageManager;
 import systems.mythical.cloudcore.core.CloudCoreConstants.Messages;
 import systems.mythical.cloudcore.database.DatabaseManager;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -41,7 +43,12 @@ public class OnConnect implements Listener {
                 ip = fallbackIp;
                 logger.warning("Using fallback IP method for player: " + event.getPlayer().getName());
             }
-
+            LuckPerms luckPerms = LuckPermsProvider.get();
+            String group = luckPerms.getUserManager().getUser(event.getPlayer().getUniqueId()).getPrimaryGroup();
+            if (group == null || group.isEmpty()) {
+                group = "default";
+            }
+            
             // Maintenance check
             CloudSettings settings = CloudSettings.getInstance(databaseManager, pluginLogger);
             MessageManager messageManager = MessageManager.getInstance(databaseManager, pluginLogger);
@@ -66,9 +73,10 @@ public class OnConnect implements Listener {
                 ip,
                 userVersion,
                 clientName,
-                serverName
+                serverName,
+                group
             );
-            logger.info("Processed join event for player: " + event.getPlayer().getName());
+            logger.info("Processed join event for player: " + event.getPlayer().getName() + " with group: " + group);
         } catch (Exception e) {
             logger.severe("Error processing join event: " + e.getMessage());
             e.printStackTrace();

@@ -49,10 +49,7 @@ public class ChatEvent {
 
             // Log the chat message asynchronously
             chatLogManager.logChatMessageAsync(uuid, content, server);
-            
-            // TODO: Add chat filtering/blocking logic here if needed
-            // For now, we just log the message and allow it
-            
+                        
             return true;
         } catch (Exception e) {
             logger.severe("Error handling chat message: " + e.getMessage());

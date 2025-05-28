@@ -35,10 +35,13 @@ public class User {
     private String discordGlobalName;
     private String discordEmail;
     private boolean discordLinked;
+    private String userGroup;
     private boolean deleted;
     private boolean locked;
     private LocalDateTime lastSeen;
     private LocalDateTime firstSeen;
+    private boolean banned;
+    private String banReason;
 
     // Getters and Setters
     public int getId() { return id; }
@@ -145,4 +148,13 @@ public class User {
 
     public LocalDateTime getFirstSeen() { return firstSeen; }
     public void setFirstSeen(LocalDateTime firstSeen) { this.firstSeen = firstSeen; }
+
+    public boolean isBanned() { return banned; }
+    public void setBanned(boolean banned) { this.banned = banned; }
+
+    public String getBanReason() { return banReason; }
+    public void setBanReason(String banReason) { this.banReason = banReason; }
+
+    public String getUserGroup() { return userGroup; }
+    public void setUserGroup(String userGroup) { this.userGroup = userGroup; }
 } 

@@ -21,6 +21,7 @@ import systems.mythical.cloudcore.maintenance.MaintenanceSystemCommand;
 import systems.mythical.cloudcore.velocity.events.OnConnect;
 import systems.mythical.cloudcore.velocity.events.OnQuit;
 import systems.mythical.cloudcore.velocity.events.OnServerSwitch;
+import systems.mythical.cloudcore.velocity.hooks.LiteBans;
 import systems.mythical.cloudcore.velocity.events.OnChat;
 import systems.mythical.cloudcore.velocity.events.OnCommand;
 import systems.mythical.cloudcore.velocity.kick.VelocityKickExecutor;
@@ -30,9 +31,15 @@ import systems.mythical.cloudcore.velocity.commands.ProxyConsoleCommand;
 import systems.mythical.cloudcore.velocity.commands.AlertCommand;
 import systems.mythical.cloudcore.velocity.commands.ReportCommand;
 import systems.mythical.cloudcore.velocity.commands.CloudCoreCommand;
+import systems.mythical.cloudcore.velocity.commands.PanelCommand;
+import systems.mythical.cloudcore.velocity.commands.ProfileCommand;
+import systems.mythical.cloudcore.velocity.commands.InfoCommand;
+import systems.mythical.cloudcore.velocity.commands.ChatlogCommand;
 import systems.mythical.cloudcore.settings.CloudSettings;
 import systems.mythical.cloudcore.settings.SettingsManager;
 import systems.mythical.cloudcore.settings.CommonSettings;
+import systems.mythical.cloudcore.utils.DependencyManager;
+
 /**
  * Velocity Imports
  */
@@ -43,8 +50,11 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+
+
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.plugin.Dependency;
 
 /*
  * Java Imports
@@ -54,13 +64,20 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 @Plugin(id = "cloudcore", name = "CloudCore", version = "1.0-SNAPSHOT", description = "The plugin to run McCloudAdminPanel", authors = {
-        "MythicalSystems" })
+        "MythicalSystems" }, dependencies = {
+                @Dependency(id = "packetevents", optional = true),
+                @Dependency(id = "luckperms", optional = true),
+                @Dependency(id = "litebans", optional = true)
+        })
 public class CloudCoreVelocity {
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataFolder;
     private CloudCore cloudCore;
     private DatabaseManager databaseManager;
+
+    @SuppressWarnings("unused")
+    private boolean litebansEnabled = false;
 
     @Inject
     public CloudCoreVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataFolder) {
@@ -76,22 +93,48 @@ public class CloudCoreVelocity {
         logger.info("CloudCore has been initialized!");
         logger.info("Forcing plugin to run in production mode.");
 
-        if (!server.getPluginManager().getPlugin("packetevents").isPresent()) {
-            logger.info("PacketEvents is not installed, disabling CloudCore Velocity plugin.");
+        if (!server.getPluginManager().getPlugin("packetevents").isPresent()
+                || !server.getPluginManager().getPlugin("luckperms").isPresent()) {
+            logger.info("Checking and downloading required dependencies...");
             try {
-                logger.info("Downloading PacketEvents...");
-                java.nio.file.Path pluginFolder = dataFolder.getParent();
-                java.net.URL url = new java.net.URL(
-                        "https://github.com/retrooper/packetevents/releases/download/v2.8.0/packetevents-velocity-2.8.0.jar");
-                java.nio.file.Files.copy(url.openStream(), pluginFolder.resolve("packetevents-velocity-2.8.0.jar"),
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                logger.info("Successfully downloaded PacketEvents to plugins folder");
+                DependencyManager dependencyManager = new DependencyManager(
+                        logger,
+                        dataFolder.getParent(),
+                        DependencyManager.Platform.VELOCITY);
+
+                dependencyManager.checkAndDownloadDependencies()
+                        .thenAccept(success -> {
+                            if (!success) {
+                                logger.severe("Failed to download required dependencies");
+                                server.shutdown();
+                            } else {
+                                logger.info("Successfully downloaded all required dependencies");
+                                server.shutdown(); // Restart to load new plugins
+                            }
+                        })
+                        .exceptionally(ex -> {
+                            logger.severe("Error managing dependencies: " + ex.getMessage());
+                            ex.printStackTrace();
+                            server.shutdown();
+                            return null;
+                        });
+                return;
             } catch (Exception e) {
-                logger.severe("Failed to download PacketEvents: " + e.getMessage());
+                logger.severe("Failed to initialize dependency manager: " + e.getMessage());
                 e.printStackTrace();
+                server.shutdown();
+                return;
             }
-            server.shutdown();
-            return;
+        }
+
+        if (!server.getPluginManager().getPlugin("litebans").isPresent()) {
+            litebansEnabled = false;
+            logger.info("LiteBans is not installed, LiteBans support is disabled.");
+        } else {
+            litebansEnabled = true;
+            logger.info("LiteBans is installed, LiteBans support is enabled.");
+            logger.info("CloudCore will process bans from LiteBans to panel.");
+            LiteBans.registerEvents();
         }
 
         KickExecutorFactory.setExecutor(VelocityKickExecutor.getInstance(server));
@@ -207,49 +250,87 @@ public class CloudCoreVelocity {
             e.printStackTrace();
         }
 
-        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.ENABLE_CONSOLE_COMMAND, false))) {
-            try {
-                SimpleCommand proxyConsole = new ProxyConsoleCommand(this);
-                CommandMeta mainMeta = commandManager.metaBuilder("proxyconsole")
-                        .aliases("pcex")
-                        .plugin(this)
-                        .build();
-                commandManager.register(mainMeta, proxyConsole);
-                logger.info("[CloudCore] /proxyconsole command registered successfully.");
-            } catch (Exception e) {
-                logger.severe("[CloudCore] Failed to register /proxyconsole: " + e.getMessage());
-                e.printStackTrace();
-            }
+        // Register Panel command
+        try {
+            SimpleCommand panel = new PanelCommand(this);
+            CommandMeta panelMeta = commandManager.metaBuilder("panel")
+                    .plugin(this)
+                    .build();
+            commandManager.register(panelMeta, panel);
+            logger.info("[CloudCore] /panel command registered successfully.");
+        } catch (Exception e) {
+            logger.severe("[CloudCore] Failed to register /panel: " + e.getMessage());
+            e.printStackTrace();
         }
+
+        // Register Info command
+        try {
+            SimpleCommand info = new InfoCommand(this);
+            CommandMeta infoMeta = commandManager.metaBuilder("info")
+                    .plugin(this)
+                    .build();
+            commandManager.register(infoMeta, info);
+            logger.info("[CloudCore] /info command registered successfully.");
+        } catch (Exception e) {
+            logger.severe("[CloudCore] Failed to register /info: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.ENABLE_ALERT_COMMAND, false))) {
             try {
                 SimpleCommand alert = new AlertCommand(this);
-                CommandMeta mainMeta = commandManager.metaBuilder("alert")
+                CommandMeta alertMeta = commandManager.metaBuilder("alert")
                         .plugin(this)
                         .build();
-                commandManager.register(mainMeta, alert);
+                commandManager.register(alertMeta, alert);
                 logger.info("[CloudCore] /alert command registered successfully.");
             } catch (Exception e) {
                 logger.severe("[CloudCore] Failed to register /alert: " + e.getMessage());
                 e.printStackTrace();
             }
         }
+
         if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.REPORT_SYSTEM_ENABLED, false))) {
             try {
                 SimpleCommand report = new ReportCommand(this);
-                CommandMeta mainMeta = commandManager.metaBuilder("report")
+                CommandMeta reportMeta = commandManager.metaBuilder("report")
                         .plugin(this)
                         .build();
-                commandManager.register(mainMeta, report);
+                commandManager.register(reportMeta, report);
                 logger.info("[CloudCore] /report command registered successfully.");
             } catch (Exception e) {
                 logger.severe("[CloudCore] Failed to register /report: " + e.getMessage());
                 e.printStackTrace();
             }
         }
+
+        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.ENABLE_CONSOLE_COMMAND, false))) {
+            try {
+                SimpleCommand proxyConsole = new ProxyConsoleCommand(this);
+                CommandMeta proxyConsoleMeta = commandManager.metaBuilder("proxyconsole")
+                        .aliases("pconsole", "pcon")
+                        .plugin(this)
+                        .build();
+                commandManager.register(proxyConsoleMeta, proxyConsole);
+                logger.info("[CloudCore] /proxyconsole command registered successfully.");
+            } catch (Exception e) {
+                logger.severe("[CloudCore] Failed to register /proxyconsole: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // Register commands
+        commandManager.register("info", new InfoCommand(this));
+        commandManager.register("profile", new ProfileCommand(this));
+        commandManager.register("chatlog", new ChatlogCommand(this));
+        commandManager.register("panel", new PanelCommand(this));
     }
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
+    }
+
+    public CloudCore getCloudCore() {
+        return cloudCore;
     }
 }

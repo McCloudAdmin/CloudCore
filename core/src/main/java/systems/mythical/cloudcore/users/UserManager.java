@@ -1,5 +1,6 @@
 package systems.mythical.cloudcore.users;
 
+import systems.mythical.cloudcore.core.CloudCoreLogic;
 import systems.mythical.cloudcore.database.DatabaseManager;
 
 import java.sql.*;
@@ -29,10 +30,11 @@ public class UserManager {
 
     public User createUser(String username, UUID uuid, String ip) {
         try (Connection conn = databaseManager.getConnection()) {
-            String query = "INSERT INTO mccloudadmin_users (username, first_ip, last_ip, uuid, token, user_connected_server_name, user_online) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO mccloudadmin_users (username, first_ip, last_ip, uuid, token, user_connected_server_name, user_online, userGroup, support_pin, avatar) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-            String token = UUID.randomUUID().toString();
+            String token = CloudCoreLogic.generateSecureStringToken(username, uuid.toString());
+            int supportPin = CloudCoreLogic.generateRandomNumber(100000, 999999);
 
             try (PreparedStatement stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, username);
@@ -42,7 +44,9 @@ public class UserManager {
                 stmt.setString(5, token);
                 stmt.setString(6, "lobby"); // Default connected server
                 stmt.setString(7, "true"); // Default online status
-
+                stmt.setString(8, "default"); // Default user group
+                stmt.setInt(9, supportPin);
+                stmt.setString(10, "https://mc-heads.net/avatar/"+username);
                 stmt.executeUpdate();
 
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -56,12 +60,14 @@ public class UserManager {
                         user.setToken(token);
                         user.setRole(1); // Default role
                         user.setVerified(false);
-                        user.setAvatar("https://www.gravatar.com/avatar");
+                        user.setAvatar("https://mc-heads.net/avatar/"+username);
                         user.setBackground("https://cdn.mythical.systems/background.gif");
                         user.setFirstSeen(LocalDateTime.now());
                         user.setLastSeen(LocalDateTime.now());
                         user.setUserConnectedServerName("lobby");
                         user.setUserOnline(true);
+                        user.setUserGroup("default");
+                        user.setSupportPin(String.valueOf(supportPin));
                         return user;
                     }
                 }
@@ -134,7 +140,8 @@ public class UserManager {
                     "github_email = ?, github_linked = ?, discord_username = ?, " +
                     "discord_global_name = ?, discord_email = ?, discord_linked = ?, " +
                     "locked = ?, last_seen = ?, user_version = ?, " +
-                    "user_client_name = ?, user_connected_server_name = ?, user_online = ? " +
+                    "user_client_name = ?, user_connected_server_name = ?, user_online = ?, userGroup = ?, " +
+                    "banned = ?, ban_reason = ? " +
                     "WHERE id = ?";
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -168,6 +175,9 @@ public class UserManager {
                 stmt.setString(paramIndex++, user.getUserClientName());
                 stmt.setString(paramIndex++, user.getUserConnectedServerName());
                 stmt.setString(paramIndex++, user.isUserOnline() ? "true" : "false");
+                stmt.setString(paramIndex++, user.getUserGroup());
+                stmt.setString(paramIndex++, user.isBanned() ? "true" : "false");
+                stmt.setString(paramIndex++, user.getBanReason());
                 stmt.setInt(paramIndex, user.getId());
 
                 return stmt.executeUpdate() > 0;
@@ -205,6 +215,26 @@ public class UserManager {
             logger.severe("Error getting all users: " + e.getMessage());
         }
         return users;
+    }
+
+    public List<User> getOtherAccounts(User user) {
+        List<User> otherAccounts = new ArrayList<>();
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "SELECT * FROM mccloudadmin_users WHERE (first_ip = ? OR last_ip = ?) AND id != ? AND deleted = 'false'";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, user.getFirstIp());
+                stmt.setString(2, user.getLastIp());
+                stmt.setInt(3, user.getId());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        otherAccounts.add(mapResultSetToUser(rs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.severe("Error getting other accounts: " + e.getMessage());
+        }
+        return otherAccounts;
     }
 
     public boolean markAllUsersOffline() {
@@ -258,6 +288,9 @@ public class UserManager {
         user.setLocked(rs.getString("locked").equals("true"));
         user.setLastSeen(rs.getTimestamp("last_seen").toLocalDateTime());
         user.setFirstSeen(rs.getTimestamp("first_seen").toLocalDateTime());
+        user.setBanned(rs.getString("banned").equals("true"));
+        user.setBanReason(rs.getString("ban_reason"));
+        user.setUserGroup(rs.getString("userGroup"));
         return user;
     }
 }

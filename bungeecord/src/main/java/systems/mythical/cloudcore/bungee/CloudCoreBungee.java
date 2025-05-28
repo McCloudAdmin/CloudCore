@@ -27,40 +27,75 @@ import systems.mythical.cloudcore.settings.CloudSettings;
 import systems.mythical.cloudcore.settings.SettingsManager;
 import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.bungee.commands.CloudCoreCommand;
+import systems.mythical.cloudcore.bungee.commands.PanelCommand;
+import systems.mythical.cloudcore.utils.DependencyManager;
 
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import systems.mythical.cloudcore.bungee.hooks.LiteBans;
+import systems.mythical.cloudcore.bungee.commands.InfoCommand;
+import systems.mythical.cloudcore.bungee.commands.ProfileCommand;
+import systems.mythical.cloudcore.bungee.commands.ChatlogCommand;
 
 public class CloudCoreBungee extends Plugin {
     private CloudCore cloudCore;
     private DatabaseManager databaseManager;
     private final Logger logger = getLogger();
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("unused")
+    private boolean litebansEnabled = false;
+
     @Override
     public void onEnable() {
         logger.info("CloudCore has been initialized!");
         logger.info("Forcing plugin to run in production mode.");
 
-        if (getProxy().getPluginManager().getPlugin("packetevents") == null) {
-            logger.info("PacketEvents is not installed, disabling CloudCore BungeeCord plugin.");
+        if (getProxy().getPluginManager().getPlugin("packetevents") == null || getProxy().getPluginManager().getPlugin("LuckPerms") == null) {
+            logger.info("Checking and downloading required dependencies...");
             try {
-                logger.info("Downloading PacketEvents...");
-                java.nio.file.Path pluginFolder = getDataFolder().toPath().getParent();
-                java.net.URL url = new java.net.URL(
-                        "https://github.com/retrooper/packetevents/releases/download/v2.8.0/packetevents-bungeecord-2.8.0.jar");
-                java.nio.file.Files.copy(url.openStream(), pluginFolder.resolve("packetevents-bungeecord-2.8.0.jar"),
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                logger.info("Successfully downloaded PacketEvents to plugins folder");
+                DependencyManager dependencyManager = new DependencyManager(
+                    logger,
+                    getDataFolder().toPath().getParent(),
+                    DependencyManager.Platform.BUNGEECORD
+                );
+
+                dependencyManager.checkAndDownloadDependencies()
+                    .thenAccept(success -> {
+                        if (!success) {
+                            logger.severe("Failed to download required dependencies");
+                            getProxy().stop();
+                        } else {
+                            logger.info("Successfully downloaded all required dependencies");
+                            getProxy().stop(); // Restart to load new plugins
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        logger.severe("Error managing dependencies: " + ex.getMessage());
+                        ex.printStackTrace();
+                        getProxy().stop();
+                        return null;
+                    });
+                return;
             } catch (Exception e) {
-                logger.severe("Failed to download PacketEvents: " + e.getMessage());
+                logger.severe("Failed to initialize dependency manager: " + e.getMessage());
                 e.printStackTrace();
+                getProxy().stop();
+                return;
             }
-            getProxy().stop();
-            return;
         }
 
         KickExecutorFactory.setExecutor(BungeeKickExecutor.getInstance());
+
+        if (getProxy().getPluginManager().getPlugin("LiteBans") == null) {
+            litebansEnabled = false;
+            logger.info("LiteBans is not installed, LiteBans support is disabled.");
+        } else {
+            litebansEnabled = true;
+            logger.info("LiteBans is installed, LiteBans support is enabled.");
+            logger.info("CloudCore will process bans from LiteBans to panel.");
+            LiteBans.registerEvents();
+        }
 
         // Set up permission checker
         PlatformPermissionBridge.setPermissionChecker((UUID uuid, String permission) -> {
@@ -122,6 +157,7 @@ public class CloudCoreBungee extends Plugin {
             // Initialize commands
             initializeCommands(settingsManager);
 
+
             logger.info("CloudCore BungeeCord plugin has been enabled!");
         } catch (Exception e) {
             logger.severe("Failed to initialize CloudCore: " + e.getMessage());
@@ -146,6 +182,19 @@ public class CloudCoreBungee extends Plugin {
     public void initializeCommands(SettingsManager settingsManager) {
         // Register CloudCore command
         getProxy().getPluginManager().registerCommand(this, new CloudCoreCommand(this));
+
+        // Register Panel command
+        getProxy().getPluginManager().registerCommand(this, new PanelCommand(this));
+
+        // Register Info command
+        getProxy().getPluginManager().registerCommand(this, new InfoCommand(this));
+
+        // Register Profile command
+        getProxy().getPluginManager().registerCommand(this, new ProfileCommand(this));
+
+        // Register Chatlog command
+        getProxy().getPluginManager().registerCommand(this, new ChatlogCommand(this));
+
         if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.ENABLE_ALERT_COMMAND, false))) {
             // Register alert command
             getProxy().getPluginManager().registerCommand(this, new AlertCommand(this));
@@ -168,5 +217,9 @@ public class CloudCoreBungee extends Plugin {
      */
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
+    }
+
+    public CloudCore getCloudCore() {
+        return cloudCore;
     }
 }

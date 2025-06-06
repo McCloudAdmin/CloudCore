@@ -67,6 +67,7 @@ public class DownloadManager {
         int retryCount = 0;
         while (retryCount < maxRetries) {
             try {
+                @SuppressWarnings("deprecation") // This is used for backwards compatibility with older versions of Java
                 URL url = new URL(urlStr);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 configureConnection(connection);

@@ -5,6 +5,7 @@ import com.velocitypowered.api.command.SimpleCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import systems.mythical.cloudcore.velocity.CloudCoreVelocity;
@@ -22,14 +23,13 @@ import java.util.Optional;
 public class ProfileCommand implements SimpleCommand {
     private final MessageManager messageManager;
     private final UserManager userManager;
-    private final String appUrl;
+    private final CloudSettings cloudSettings;
     private final LegacyComponentSerializer legacySerializer;
 
     public ProfileCommand(CloudCoreVelocity plugin) {
         this.messageManager = MessageManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
         this.userManager = UserManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
-        CloudSettings cloudSettings = CloudSettings.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
-        this.appUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL);
+        this.cloudSettings = CloudSettings.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
         this.legacySerializer = LegacyComponentSerializer.builder().character('&').build();
     }
 
@@ -52,13 +52,17 @@ public class ProfileCommand implements SimpleCommand {
         }
 
         User user = userOpt.get();
-        String profileUrl = appUrl + "/profile/" + user.getUuid();
+        String profileUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL) + "/profile/" + user.getUuid();
 
         // Create clickable message with URL
-        Component message = Component.text(messageManager.getColoredMessage(Messages.PROFILE_LINK))
+        Component message = Component.text()
+            .append(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.PROFILE_LINK)))
             .append(Component.text(profileUrl)
+                .color(NamedTextColor.AQUA)
                 .clickEvent(ClickEvent.openUrl(profileUrl))
-                .hoverEvent(HoverEvent.showText(Component.text("Click to view profile", TextColor.color(0x808080)))));
+                .hoverEvent(HoverEvent.showText(Component.text("Click to view profile")
+                    .color(TextColor.color(0x808080)))))
+            .build();
         
         source.sendMessage(message);
     }

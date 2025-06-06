@@ -12,11 +12,18 @@ import systems.mythical.cloudcore.maintenance.MaintenanceSystemCommand;
 import systems.mythical.cloudcore.messages.MessageManager;
 import systems.mythical.cloudcore.core.CloudCoreConstants.Messages;
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.permissions.WebPanelPermissionManager;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.group.Group;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.NodeType;
+import net.luckperms.api.node.types.PermissionNode;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.net.InetSocketAddress;
 
@@ -24,14 +31,16 @@ public class OnConnect implements Listener {
     private static final Logger logger = Logger.getLogger(OnConnect.class.getName());
     private final DatabaseManager databaseManager;
     private final Logger pluginLogger;
+    private final WebPanelPermissionManager webPanelPermissionManager;
 
     public OnConnect(DatabaseManager databaseManager, Logger pluginLogger) {
         this.databaseManager = databaseManager;
         this.pluginLogger = pluginLogger;
+        this.webPanelPermissionManager = WebPanelPermissionManager.getInstance(databaseManager, pluginLogger);
     }
 
     @SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onConnect(PostLoginEvent event) {
         try {
             String ip;
@@ -43,10 +52,20 @@ public class OnConnect implements Listener {
                 ip = fallbackIp;
                 logger.warning("Using fallback IP method for player: " + event.getPlayer().getName());
             }
+
+            // LuckPerms group name
             LuckPerms luckPerms = LuckPermsProvider.get();
-            String group = luckPerms.getUserManager().getUser(event.getPlayer().getUniqueId()).getPrimaryGroup();
-            if (group == null || group.isEmpty()) {
-                group = "default";
+            User lpUser = luckPerms.getUserManager().getUser(event.getPlayer().getUniqueId());
+            if (lpUser == null) {
+                pluginLogger.warning("Could not get LuckPerms user for " + event.getPlayer().getName());
+                return;
+            }
+
+            Group groupObject = luckPerms.getGroupManager().getGroup(lpUser.getPrimaryGroup());
+            String groupName = groupObject != null && groupObject.getDisplayName() != null ? 
+                groupObject.getDisplayName() : lpUser.getPrimaryGroup();
+            if (groupName == null || groupName.isEmpty()) {
+                groupName = "N/A";
             }
             
             // Maintenance check
@@ -67,6 +86,29 @@ public class OnConnect implements Listener {
             String serverName = event.getPlayer().getServer() != null ? 
                 event.getPlayer().getServer().getInfo().getName() : "lobby";
 
+            // Update web panel permissions
+            List<String> webPanelPermissions = new ArrayList<>();
+            List<String> negativePermissions = new ArrayList<>();
+
+            // Get all permissions the user has (including inherited ones)
+            lpUser.getNodes().forEach(node -> {
+                if (node.getType() == NodeType.PERMISSION) {
+                    PermissionNode permNode = (PermissionNode) node;
+                    String permission = permNode.getPermission();
+                    if (permission.startsWith("cloudcore.webpanel.")) {
+                        if (permNode.getValue()) {
+                            webPanelPermissions.add(permission);
+                        } else {
+                            negativePermissions.add(permission);
+                        }
+                    }
+                }
+            });
+
+            // Update the web panel permissions in the database
+            webPanelPermissionManager.updateUserPermissions(event.getPlayer().getUniqueId(), webPanelPermissions, negativePermissions);
+            pluginLogger.info("Updated web panel permissions for user " + event.getPlayer().getName() + " on join");
+
             JoinEvent.onPlayerJoin(
                 event.getPlayer().getName(),
                 event.getPlayer().getUniqueId(),
@@ -74,9 +116,9 @@ public class OnConnect implements Listener {
                 userVersion,
                 clientName,
                 serverName,
-                group
+                groupName
             );
-            logger.info("Processed join event for player: " + event.getPlayer().getName() + " with group: " + group);
+            logger.info("Processed join event for player: " + event.getPlayer().getName() + " with group: " + groupName);
         } catch (Exception e) {
             logger.severe("Error processing join event: " + e.getMessage());
             e.printStackTrace();

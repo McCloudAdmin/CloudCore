@@ -58,15 +58,16 @@ public class ChatLogManager {
         }
     }
 
-    public ChatLog createChatLog(User user) {
+    public ChatLog createChatLog(User user, User sender) {
         try (Connection conn = databaseManager.getConnection()) {
             // First, get the last 45 messages for the user
             List<Map<String, Object>> messages = getLastMessages(user.getUuid(), 45);
             
             // Insert the chat log request
-            String sql = "INSERT INTO mccloudadmin_chatlogs_requests (uuid, messages) VALUES (?, ?)";
+            String sql = "INSERT INTO mccloudadmin_chatlogs_requests (uuid, messages, uuid_reported) VALUES (?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, user.getUuid().toString());
+                stmt.setString(3, sender.getUuid().toString());
                 stmt.setString(2, gson.toJson(messages));
                 stmt.executeUpdate();
 

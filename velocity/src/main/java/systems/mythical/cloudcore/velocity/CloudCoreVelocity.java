@@ -32,6 +32,7 @@ import systems.mythical.cloudcore.velocity.commands.AlertCommand;
 import systems.mythical.cloudcore.velocity.commands.ReportCommand;
 import systems.mythical.cloudcore.velocity.commands.CloudCoreCommand;
 import systems.mythical.cloudcore.velocity.commands.PanelCommand;
+import systems.mythical.cloudcore.velocity.commands.PerformJoinCommand;
 import systems.mythical.cloudcore.velocity.commands.ProfileCommand;
 import systems.mythical.cloudcore.velocity.commands.InfoCommand;
 import systems.mythical.cloudcore.velocity.commands.ChatlogCommand;
@@ -39,6 +40,9 @@ import systems.mythical.cloudcore.settings.CloudSettings;
 import systems.mythical.cloudcore.settings.SettingsManager;
 import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.utils.DependencyManager;
+import systems.mythical.cloudcore.velocity.tasks.ConsoleTaskScheduler;
+import systems.mythical.cloudcore.velocity.commands.Social;
+import systems.mythical.cloudcore.velocity.commands.JoinMeCommand;
 
 /**
  * Velocity Imports
@@ -63,6 +67,10 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import systems.mythical.cloudcore.velocity.events.LuckPermsListener;
+
 @Plugin(id = "cloudcore", name = "CloudCore", version = "1.0-SNAPSHOT", description = "The plugin to run McCloudAdminPanel", authors = {
         "MythicalSystems" }, dependencies = {
                 @Dependency(id = "packetevents", optional = true),
@@ -75,6 +83,7 @@ public class CloudCoreVelocity {
     private final Path dataFolder;
     private CloudCore cloudCore;
     private DatabaseManager databaseManager;
+    private ConsoleTaskScheduler consoleTaskScheduler;
 
     @SuppressWarnings("unused")
     private boolean litebansEnabled = false;
@@ -196,8 +205,19 @@ public class CloudCoreVelocity {
                 server.getEventManager().register(this, new OnCommand());
             }
 
+            // Initialize LuckPerms listener
+            LuckPerms luckPerms = LuckPermsProvider.get();
+            new LuckPermsListener(luckPerms, databaseManager, logger);
+            logger.info("[CloudCore] LuckPerms listener initialized");
+
             logger.info("[CloudCore] Initializing commands...");
             initializeCommands(cloudSettings, settingsManager);
+
+            // Initialize console task scheduler
+            consoleTaskScheduler = new ConsoleTaskScheduler(this);
+            consoleTaskScheduler.start();
+
+            // Register JoinMe command
 
             logger.info("[CloudCore] CloudCore Velocity plugin has been enabled!");
         } catch (Exception e) {
@@ -216,6 +236,12 @@ public class CloudCoreVelocity {
         if (cloudCore != null) {
             cloudCore.shutdown();
         }
+
+        // Stop console task scheduler
+        if (consoleTaskScheduler != null) {
+            consoleTaskScheduler.stop();
+        }
+
         logger.info("CloudCore Velocity plugin has been disabled!");
     }
 
@@ -290,6 +316,32 @@ public class CloudCoreVelocity {
             }
         }
 
+        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.JOINME_ENABLED, false))) {
+            try {
+                // Create the JoinMe command instance
+                JoinMeCommand joinMeCommand = new JoinMeCommand(this, dataFolder);
+                
+                // Register the main joinme command
+                CommandMeta joinMeMeta = commandManager.metaBuilder("joinme")
+                        .plugin(this)
+                        .build();
+                commandManager.register(joinMeMeta, joinMeCommand);
+
+                // Register the performjoin command
+                PerformJoinCommand performJoinCommand = new PerformJoinCommand(this);
+                CommandMeta performJoinMeta = commandManager.metaBuilder("performjoin")
+                        .plugin(this)
+                        .aliases("pj") // Optional alias
+                        .build();
+                commandManager.register(performJoinMeta, performJoinCommand);
+
+                logger.info("[CloudCore] /joinme and /performjoin commands registered successfully.");
+            } catch (Exception e) {
+                logger.severe("[CloudCore] Failed to register JoinMe commands: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.REPORT_SYSTEM_ENABLED, false))) {
             try {
                 SimpleCommand report = new ReportCommand(this);
@@ -321,9 +373,87 @@ public class CloudCoreVelocity {
 
         // Register commands
         commandManager.register("info", new InfoCommand(this));
-        commandManager.register("profile", new ProfileCommand(this));
-        commandManager.register("chatlog", new ChatlogCommand(this));
+        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.GLOBAL_APP_PROFILE_ENABLED, false))) {
+            commandManager.register("profile", new ProfileCommand(this));
+        }
+        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.LOG_CHAT, false))) {
+            commandManager.register("chatlog", new ChatlogCommand(this));
+        }
         commandManager.register("panel", new PanelCommand(this));
+
+        createSocialMediaLinksCommands(commandManager, cloudSettings);
+    }
+
+    private void createSocialMediaLinksCommands(CommandManager commandManager, CloudSettings cloudSettings) {
+        String discordUrl = cloudSettings.getSetting(Settings.GLOBAL_DISCORD_INVITE_URL);
+        if (!discordUrl.isEmpty()) {
+            commandManager.register("discord", new Social("Discord", discordUrl, this));
+        }
+
+        String websiteUrl = cloudSettings.getSetting(Settings.GLOBAL_WEBSITE_URL);
+        if (!websiteUrl.isEmpty()) {
+            commandManager.register("website", new Social("Website", websiteUrl, this));
+        }
+
+        String storeUrl = cloudSettings.getSetting(Settings.GLOBAL_STORE_URL);
+        if (!storeUrl.isEmpty()) {
+            commandManager.register("store", new Social("Store", storeUrl, this));
+        }
+
+        String twitterUrl = cloudSettings.getSetting(Settings.GLOBAL_TWITTER_URL);
+        if (!twitterUrl.isEmpty()) {
+            commandManager.register("twitter", new Social("Twitter", twitterUrl, this));
+        }
+
+        String githubUrl = cloudSettings.getSetting(Settings.GLOBAL_GITHUB_URL);
+        if (!githubUrl.isEmpty()) {
+            commandManager.register("github", new Social("GitHub", githubUrl, this));
+        }
+
+        String linkedinUrl = cloudSettings.getSetting(Settings.GLOBAL_LINKEDIN_URL);
+        if (!linkedinUrl.isEmpty()) {
+            commandManager.register("linkedin", new Social("LinkedIn", linkedinUrl, this));
+        }
+
+        String instagramUrl = cloudSettings.getSetting(Settings.GLOBAL_INSTAGRAM_URL);
+        if (!instagramUrl.isEmpty()) {
+            commandManager.register("instagram", new Social("Instagram", instagramUrl, this));
+        }
+
+        String youtubeUrl = cloudSettings.getSetting(Settings.GLOBAL_YOUTUBE_URL);
+        if (!youtubeUrl.isEmpty()) {
+            commandManager.register("youtube", new Social("YouTube", youtubeUrl, this));
+        }
+
+        String tiktokUrl = cloudSettings.getSetting(Settings.GLOBAL_TIKTOK_URL);
+        if (!tiktokUrl.isEmpty()) {
+            commandManager.register("tiktok", new Social("TikTok", tiktokUrl, this));
+        }
+
+        String facebookUrl = cloudSettings.getSetting(Settings.GLOBAL_FACEBOOK_URL);
+        if (!facebookUrl.isEmpty()) {
+            commandManager.register("facebook", new Social("Facebook", facebookUrl, this));
+        }
+
+        String redditUrl = cloudSettings.getSetting(Settings.GLOBAL_REDDIT_URL);
+        if (!redditUrl.isEmpty()) {
+            commandManager.register("reddit", new Social("Reddit", redditUrl, this));
+        }
+
+        String telegramUrl = cloudSettings.getSetting(Settings.GLOBAL_TELEGRAM_URL);
+        if (!telegramUrl.isEmpty()) {
+            commandManager.register("telegram", new Social("Telegram", telegramUrl, this));
+        }
+
+        String whatsappUrl = cloudSettings.getSetting(Settings.GLOBAL_WHATSAPP_URL);
+        if (!whatsappUrl.isEmpty()) {
+            commandManager.register("whatsapp", new Social("WhatsApp", whatsappUrl, this));
+        }
+
+        String statusUrl = cloudSettings.getSetting(Settings.GLOBAL_STATUS_PAGE_URL);
+        if (!statusUrl.isEmpty()) {
+            commandManager.register("status", new Social("Status", statusUrl, this));
+        }
     }
 
     public DatabaseManager getDatabaseManager() {

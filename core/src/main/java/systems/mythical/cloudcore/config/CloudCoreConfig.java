@@ -68,6 +68,9 @@ public class CloudCoreConfig {
         database.put("username", "mythical");
         database.put("password", "");
         config.put("database", database);
+
+        // Global settings
+        config.put("server_name", "CloudCore");
         
         return config;
     }

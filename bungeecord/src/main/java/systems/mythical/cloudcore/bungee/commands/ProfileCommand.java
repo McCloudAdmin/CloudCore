@@ -23,14 +23,14 @@ import java.util.Optional;
 public class ProfileCommand extends Command implements TabExecutor {
     private final MessageManager messageManager;
     private final UserManager userManager;
-    private final String appUrl;
+    private final CloudSettings cloudSettings;
 
     public ProfileCommand(CloudCoreBungee plugin) {
         super("profile");
         this.messageManager = MessageManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
         this.userManager = UserManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
-        CloudSettings cloudSettings = CloudSettings.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
-        this.appUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL);
+        this.cloudSettings = CloudSettings.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
+        
     }
 
     @Override
@@ -49,15 +49,16 @@ public class ProfileCommand extends Command implements TabExecutor {
         }
 
         User user = userOpt.get();
-        String profileUrl = appUrl + "/profile/" + user.getUuid();
+        String profileUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL) + "/profile/" + user.getUuid();
 
         // Create clickable message with URL
         TextComponent message = new TextComponent(messageManager.getColoredMessage(Messages.PROFILE_LINK));
         TextComponent url = new TextComponent(profileUrl);
         
+        url.setColor(ChatColor.AQUA);
         url.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, profileUrl));
         url.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
-            new ComponentBuilder(ChatColor.GRAY + "Click to view profile").create()));
+            new ComponentBuilder("Click to view profile").color(ChatColor.GRAY).create()));
 
         message.addExtra(url);
         sender.sendMessage(message);

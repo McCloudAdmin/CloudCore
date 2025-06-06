@@ -73,7 +73,7 @@ public class PanelCommand implements SimpleCommand {
 
         User user = userOpt.get();
         String appUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL);
-        String loginUrl = appUrl + "/auth/login?token=" + user.getToken();
+        String loginUrl = appUrl + "/auth/login?token=" + java.util.Base64.getEncoder().encodeToString(user.getToken().getBytes())+"&performLogin=true";
 
         // Create a clickable link component with translated message
         Component message = Component.empty()
@@ -96,7 +96,7 @@ public class PanelCommand implements SimpleCommand {
         userManager.updateUser(userOpt.get());
         
         String appUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL);
-        String loginUrl = appUrl + "/auth/login?token=" + token;
+        String loginUrl = appUrl + "/auth/login?token=" + java.util.Base64.getEncoder().encodeToString(token.getBytes())+"&performLogin=true";
 
         // Create a clickable link component with translated message
         Component message = Component.empty()

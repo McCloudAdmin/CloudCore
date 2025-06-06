@@ -4,7 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Centralized class for storing all permission nodes and config nodes used across CloudCore
+ * Centralized class for storing all permission nodes and config nodes used
+ * across CloudCore
  */
 public final class CloudCoreConstants {
     private CloudCoreConstants() {
@@ -33,6 +34,7 @@ public final class CloudCoreConstants {
         public static final String MAINTENANCE_TOGGLE = "cloudcore.maintenance.toggle";
         public static final String MAINTENANCE_MANAGE = "cloudcore.maintenance.manage";
         public static final String SETTINGS_MANAGE = "cloudcore.settings.manage";
+        public static final String CHATLOG_COMMAND = "cloudcore.chatlog.command";
 
         // Admin commands
         public static final String ADMIN_RELOAD = "cloudcore.admin.reload";
@@ -40,7 +42,77 @@ public final class CloudCoreConstants {
         public static final String ADMIN_VERSION = "cloudcore.admin.version";
         public static final String ADMIN_INFO = "cloudcore.admin.info";
 
-        
+        // JoinMe command
+        public static final String JOINME_USE = "cloudcore.joinme.use";
+        public static final String JOINME_USE_BYPASS_COOLDOWN = "cloudcore.joinme.use.bypass_cooldown";
+
+        // Web Panel Permissions
+        public static final String PANEL_ADMIN = "cloudcore.webpanel.admin";
+
+        // Web Panel User Management Permissions
+        public static final String PANEL_USERS_INDEX = "cloudcore.webpanel.users.index";
+        public static final String PANEL_USERS_EDIT = "cloudcore.webpanel.users.edit";
+        public static final String PANEL_USERS_DELETE = "cloudcore.webpanel.users.delete";
+
+        // Web Panel Ticket Management Permissions
+        public static final String PANEL_TICKETS_INDEX = "cloudcore.webpanel.tickets.index";
+        public static final String PANEL_TICKETS_DETAILS = "cloudcore.webpanel.tickets.details";
+
+        public static final String PANEL_SETTINGS_INDEX = "cloudcore.webpanel.settings.index";
+        public static final String PANEL_SETTINGS_EDIT = "cloudcore.webpanel.settings.edit";
+        public static final String PANEL_SETTINGS_DELETE = "cloudcore.webpanel.settings.delete";
+
+        // Web Panel Redirect Links Permissions
+        public static final String PANEL_REDIRECT_LINKS_INDEX = "cloudcore.webpanel.redirect-links.index";
+        public static final String PANEL_REDIRECT_LINKS_CREATE = "cloudcore.webpanel.redirect-links.create";
+        public static final String PANEL_REDIRECT_LINKS_EDIT = "cloudcore.webpanel.redirect-links.edit";
+        public static final String PANEL_REDIRECT_LINKS_DELETE = "cloudcore.webpanel.redirect-links.delete";
+
+        // Web Panel Redeem Codes Permissions
+        public static final String PANEL_REDEEM_CODES_INDEX = "cloudcore.webpanel.redeem-codes.index";
+        public static final String PANEL_REDEEM_CODES_CREATE = "cloudcore.webpanel.redeem-codes.create";
+        public static final String PANEL_REDEEM_CODES_EDIT = "cloudcore.webpanel.redeem-codes.edit";
+        public static final String PANEL_REDEEM_CODES_DELETE = "cloudcore.webpanel.redeem-codes.delete";
+
+        // Web Panel Plugin Management Permissions
+        public static final String PANEL_PLUGINS_INDEX = "cloudcore.webpanel.plugins.index";
+        public static final String PANEL_PLUGINS_CONFIG = "cloudcore.webpanel.plugins.config";
+
+        // Web Panel Mail Templates Permissions
+        public static final String PANEL_MAIL_TEMPLATES_INDEX = "cloudcore.webpanel.mail-templates.index";
+        public static final String PANEL_MAIL_TEMPLATES_CREATE = "cloudcore.webpanel.mail-templates.create";
+        public static final String PANEL_MAIL_TEMPLATES_EDIT = "cloudcore.webpanel.mail-templates.edit";
+        public static final String PANEL_MAIL_TEMPLATES_DELETE = "cloudcore.webpanel.mail-templates.delete";
+
+        // Web Panel Announcements Permissions
+        public static final String PANEL_ANNOUNCEMENTS_INDEX = "cloudcore.webpanel.announcements.index";
+        public static final String PANEL_ANNOUNCEMENTS_CREATE = "cloudcore.webpanel.announcements.create";
+        public static final String PANEL_ANNOUNCEMENTS_EDIT = "cloudcore.webpanel.announcements.edit";
+        public static final String PANEL_ANNOUNCEMENTS_DELETE = "cloudcore.webpanel.announcements.delete";
+
+        // Web Panel Backups Permissions
+        public static final String PANEL_BACKUPS_INDEX = "cloudcore.webpanel.backups.index";
+
+        // Web Panel Department Management Permissions
+        public static final String PANEL_DEPARTMENTS_INDEX = "cloudcore.webpanel.departments.index";
+        public static final String PANEL_DEPARTMENTS_CREATE = "cloudcore.webpanel.departments.create";
+        public static final String PANEL_DEPARTMENTS_EDIT = "cloudcore.webpanel.departments.edit";
+        public static final String PANEL_DEPARTMENTS_DELETE = "cloudcore.webpanel.departments.delete";
+
+        // Web Panel Images Management Permissions
+        public static final String PANEL_IMAGES_INDEX = "cloudcore.webpanel.images.index";
+        public static final String PANEL_IMAGES_CREATE = "cloudcore.webpanel.images.create";
+        public static final String PANEL_IMAGES_DELETE = "cloudcore.webpanel.images.delete";
+
+        // Web Panel Pages Management Permissions
+        public static final String PANEL_PAGES_INDEX = "cloudcore.webpanel.pages.index";
+        public static final String PANEL_WIDGET_OVERVIEW = "cloudcore.webpanel.widget.overview";
+        public static final String PANEL_WIDGET_AT_A_GLANCE = "cloudcore.webpanel.widget.at-a-glance";
+        public static final String PANEL_WIDGET_ACTIVITY = "cloudcore.webpanel.widget.activity";
+        public static final String PANEL_WIDGET_QUICK_ACTIONS = "cloudcore.webpanel.widget.quick-actions";
+        public static final String PANEL_WIDGET_SUPPORT = "cloudcore.webpanel.widget.support";
+        public static final String PANEL_WIDGET_LOGS = "cloudcore.webpanel.widget.logs";
+
     }
 
     /**
@@ -55,7 +127,6 @@ public final class CloudCoreConstants {
         // Logging settings
         public static final String LOG_CHAT = "log_chatlogs";
         public static final String LOG_COMMANDS = "log_command_logs";
-        public static final String LOG_JOINS = "log_join_events";
 
         // Report system settings
         public static final String REPORT_SYSTEM_ENABLED = "report_system_enabled";
@@ -90,31 +161,48 @@ public final class CloudCoreConstants {
         public static final String GLOBAL_REDDIT_URL = "reddit_url";
         public static final String GLOBAL_TELEGRAM_URL = "telegram_url";
         public static final String GLOBAL_WHATSAPP_URL = "whatsapp_url";
+        public static final String GLOBAL_STORE_URL = "store_url";
         public static final String GLOBAL_ALLOW_CODE_REDEEM = "code_redemption_enabled";
+
+        // JoinMe settings
+        public static final String JOINME_COOLDOWN = "joinme_cooldown";
+        public static final String JOINME_ENABLED = "joinme_enabled";
 
         public static List<String> getGlobalSettings() {
             return Arrays.asList(
-                GLOBAL_APP_NAME,
-                GLOBAL_APP_LOGO,
-                GLOBAL_APP_URL,
-                GLOBAL_APP_VERSION,
-                GLOBAL_APP_PROFILE_ENABLED,
-                GLOBAL_APP_ALLOW_TICKETS,
-                GLOBAL_WEBSITE_URL,
-                GLOBAL_STATUS_PAGE_URL,
-                GLOBAL_DISCORD_INVITE_URL,
-                GLOBAL_TWITTER_URL,
-                GLOBAL_GITHUB_URL,
-                GLOBAL_LINKEDIN_URL,
-                GLOBAL_INSTAGRAM_URL,
-                GLOBAL_YOUTUBE_URL,
-                GLOBAL_TIKTOK_URL,
-                GLOBAL_FACEBOOK_URL,
-                GLOBAL_REDDIT_URL,
-                GLOBAL_TELEGRAM_URL,
-                GLOBAL_WHATSAPP_URL,
-                GLOBAL_ALLOW_CODE_REDEEM
-            );
+                    FIREWALL_ENABLED,
+                    FIREWALL_BLOCK_VPN,
+                    FIREWALL_BLOCK_ALTS,
+                    LOG_CHAT,
+                    LOG_COMMANDS,
+                    REPORT_SYSTEM_ENABLED,
+                    REPORT_COOLDOWN,
+                    MAINTENANCE_MODE,
+                    ENABLE_ALERT_COMMAND,
+                    ENABLE_CONSOLE_COMMAND,
+                    GLOBAL_APP_NAME,
+                    GLOBAL_APP_LOGO,
+                    GLOBAL_APP_URL,
+                    GLOBAL_APP_VERSION,
+                    GLOBAL_APP_PROFILE_ENABLED,
+                    GLOBAL_APP_ALLOW_TICKETS,
+                    GLOBAL_WEBSITE_URL,
+                    GLOBAL_STATUS_PAGE_URL,
+                    GLOBAL_DISCORD_INVITE_URL,
+                    GLOBAL_TWITTER_URL,
+                    GLOBAL_GITHUB_URL,
+                    GLOBAL_LINKEDIN_URL,
+                    GLOBAL_INSTAGRAM_URL,
+                    GLOBAL_YOUTUBE_URL,
+                    GLOBAL_TIKTOK_URL,
+                    GLOBAL_FACEBOOK_URL,
+                    GLOBAL_REDDIT_URL,
+                    GLOBAL_TELEGRAM_URL,
+                    GLOBAL_WHATSAPP_URL,
+                    GLOBAL_STORE_URL,
+                    GLOBAL_ALLOW_CODE_REDEEM,
+                    JOINME_COOLDOWN,
+                    JOINME_ENABLED);
         }
     }
 
@@ -154,8 +242,7 @@ public final class CloudCoreConstants {
         public static final String INFORMATION_HEADER = "information.header";
         public static final String INFORMATION_VERIFIED = "information.verified";
         public static final String INFORMATION_SUPPORT_PIN = "information.support_pin";
-        
-        
+
         // Status messages
         public static final String STATUS_YES = "status.yes";
         public static final String STATUS_NO = "status.no";
@@ -223,5 +310,25 @@ public final class CloudCoreConstants {
         public static final String CHATLOG_USAGE = "chatlog.usage";
         public static final String CHATLOG_NOT_FOUND = "chatlog.not_found";
         public static final String CHATLOG_NO_MESSAGES = "chatlog.no_messages";
+
+        // Social Media Messages
+        public static final String SOCIAL_CLICK_TO_VIEW = "social.click_to_view";
+        public static final String SOCIAL_LINK_FORMAT = "social.link_format";
+        public static final String SOCIAL_HOVER_TEXT = "social.hover_text";
+
+        // JoinMe messages
+        public static final String JOINME_USAGE = "joinme.usage";
+        public static final String JOINME_NO_PERMISSION = "joinme.no_permission";
+        public static final String JOINME_COOLDOWN = "joinme.cooldown";
+        public static final String JOINME_DISABLED = "joinme.disabled";
+        public static final String JOINME_ERROR = "joinme.error";
+        public static final String JOINME_PLAYER_NAME = "joinme.player_name";
+        public static final String JOINME_IS_PLAYING_ON = "joinme.is_playing_on";
+        public static final String JOINME_SERVER_NAME = "joinme.server_name";
+        public static final String JOINME_CLICK_TO_JOIN = "joinme.click_to_join";
+        public static final String JOINME_HOVER_TEXT = "joinme.hover_text";
+
+        // Chatlog messages
+        public static final String CHATLOG_COOLDOWN = "chatlog.cooldown";
     }
-} 
+}

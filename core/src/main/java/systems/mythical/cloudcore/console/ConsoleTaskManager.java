@@ -20,7 +20,6 @@ public class ConsoleTaskManager {
         this.databaseManager = databaseManager;
         this.logger = logger;
         this.platform = platform;
-        createTable();
     }
 
     public static ConsoleTaskManager getInstance(DatabaseManager databaseManager, Logger logger, String platform) {
@@ -30,27 +29,6 @@ public class ConsoleTaskManager {
         return instance;
     }
 
-    private void createTable() {
-        try (Connection conn = databaseManager.getConnection()) {
-            String sql = """
-                CREATE TABLE IF NOT EXISTS mccloudadmin_console_tasks (
-                    id INT NOT NULL AUTO_INCREMENT,
-                    cmd TEXT NOT NULL,
-                    executed ENUM('true', 'false') NOT NULL DEFAULT 'false',
-                    execute_on ENUM('proxy', 'server') NOT NULL DEFAULT 'server',
-                    execute_on_server TEXT NOT NULL,
-                    date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-            """;
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.executeUpdate();
-            }
-        } catch (SQLException e) {
-            logger.severe("Failed to create console_tasks table: " + e.getMessage());
-        }
-    }
-
     public List<ConsoleTask> getPendingTasks() {
         List<ConsoleTask> tasks = new ArrayList<>();
         try (Connection conn = databaseManager.getConnection()) {
@@ -58,7 +36,7 @@ public class ConsoleTaskManager {
                 SELECT * FROM mccloudadmin_console_tasks 
                 WHERE executed = 'false' 
                 AND execute_on = ? 
-                ORDER BY date ASC
+                ORDER BY created_at ASC
             """;
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, platform);
@@ -69,7 +47,7 @@ public class ConsoleTaskManager {
                             rs.getString("cmd"),
                             rs.getString("execute_on"),
                             rs.getString("execute_on_server"),
-                            rs.getTimestamp("date").getTime()
+                            rs.getTimestamp("updated_at").getTime()
                         ));
                     }
                 }

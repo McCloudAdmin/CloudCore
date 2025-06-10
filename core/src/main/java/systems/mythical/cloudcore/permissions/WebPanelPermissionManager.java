@@ -20,7 +20,6 @@ public class WebPanelPermissionManager {
     private WebPanelPermissionManager(DatabaseManager databaseManager, Logger logger) {
         this.databaseManager = databaseManager;
         this.logger = logger;
-        initializeTable();
     }
 
     public static WebPanelPermissionManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -28,31 +27,6 @@ public class WebPanelPermissionManager {
             instance = new WebPanelPermissionManager(databaseManager, logger);
         }
         return instance;
-    }
-
-    private void initializeTable() {
-        try (Connection conn = databaseManager.getConnection()) {
-            String createTable = """
-                CREATE TABLE IF NOT EXISTS `mccloudadmin_users_permissions` (
-                    `id` INT NOT NULL AUTO_INCREMENT,
-                    `uuid` VARCHAR(36) NOT NULL,
-                    `permission` VARCHAR(255) NOT NULL,
-                    `granted` ENUM('false', 'true') NOT NULL DEFAULT 'true',
-                    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                    `locked` ENUM('false', 'true') NOT NULL DEFAULT 'false',
-                    `deleted` ENUM('false', 'true') NOT NULL DEFAULT 'false',
-                    PRIMARY KEY (`id`),
-                    UNIQUE KEY `unique_user_permission` (`uuid`, `permission`),
-                    FOREIGN KEY (`uuid`) REFERENCES `mccloudadmin_users` (`uuid`)
-                ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci
-            """;
-            try (PreparedStatement stmt = conn.prepareStatement(createTable)) {
-                stmt.execute();
-            }
-        } catch (SQLException e) {
-            logger.severe("Error creating web panel permissions table: " + e.getMessage());
-        }
     }
 
     public void updateUserPermissions(UUID uuid, List<String> permissions, List<String> negativePermissions) {

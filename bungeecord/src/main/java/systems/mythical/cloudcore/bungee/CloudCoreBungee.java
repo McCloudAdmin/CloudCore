@@ -103,7 +103,8 @@ public class CloudCoreBungee extends Plugin {
             litebansEnabled = true;
             logger.info("LiteBans is installed, LiteBans support is enabled.");
             logger.info("CloudCore will process bans from LiteBans to panel.");
-            LiteBans.registerEvents();
+            LiteBans liteBans = new LiteBans(this);
+            liteBans.registerEvents();
         }
 
         // Set up permission checker
@@ -119,6 +120,17 @@ public class CloudCoreBungee extends Plugin {
             // Initialize database
             databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
             logger.info("Database connection pool initialized successfully!");
+
+            // Initialize system user
+            systems.mythical.cloudcore.users.SystemUserManager systemUserManager = 
+                systems.mythical.cloudcore.users.SystemUserManager.getInstance(databaseManager, logger);
+            systemUserManager.createSystemUserIfNotExists();
+            logger.info("System user initialized successfully!");
+
+            // Initialize worker
+            WorkerManager worker = new WorkerManager(cloudCore.getConfig(), databaseManager, logger);
+            worker.initialize();
+            logger.info("Worker initialized successfully!");
 
             // Initialize settings
             CloudSettings cloudSettings = CloudSettings.getInstance(databaseManager, logger);

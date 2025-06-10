@@ -3,12 +3,15 @@ package systems.mythical.cloudcore.velocity.hooks;
 import litebans.api.*;
 import systems.mythical.cloudcore.users.User;
 import systems.mythical.cloudcore.users.UserManager;
+import systems.mythical.cloudcore.velocity.CloudCoreVelocity;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import systems.mythical.cloudcore.core.CloudCore;
+
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
+
 import java.io.File;
 
 public class LiteBans {
@@ -17,7 +20,10 @@ public class LiteBans {
     private static final DatabaseManager databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
     private static final UserManager userManager = UserManager.getInstance(databaseManager, logger);
 
-    public static void registerEvents() {
+    public LiteBans(CloudCoreVelocity cloudCoreVelocity) {
+    }
+
+    public void registerEvents() {
         Events.get().register(new Events.Listener() {
             @Override
             public void entryAdded(Entry entry) {
@@ -46,7 +52,6 @@ public class LiteBans {
                         handleUnban(entry);
                         break;
                     case "mute":
-                        // This is an unmute event.
                         break;
                     case "warn":
                         // This is an unwarn event.
@@ -56,7 +61,7 @@ public class LiteBans {
         });
     }
 
-    private static void handleBan(Entry entry) {
+    private void handleBan(Entry entry) {
         try {
             String uuid = entry.getUuid();
             if (uuid != null) {

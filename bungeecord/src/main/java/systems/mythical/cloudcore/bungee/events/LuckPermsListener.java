@@ -40,12 +40,14 @@ public class LuckPermsListener {
         // Update the user's group in the database based on their primary group
         String groupName = user.getPrimaryGroup();
         Group group = luckPerms.getGroupManager().getGroup(groupName);
+        int weight = group.getWeight().orElse(0);
         if (group != null) {
             String displayName = group.getDisplayName() != null ? group.getDisplayName() : groupName;
             var cloudUser = userManager.getUserByUuid(user.getUniqueId());
             if (cloudUser.isPresent()) {
                 var updatedUser = cloudUser.get();
                 updatedUser.setUserGroup(displayName);
+                updatedUser.setUserGroupWeight(weight);
                 userManager.updateUser(updatedUser);
                 logger.info("Updated group for user " + user.getUsername() + " to " + displayName);
             }

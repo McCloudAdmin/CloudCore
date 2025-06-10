@@ -4,8 +4,11 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class CloudCoreConfig {
@@ -69,10 +72,21 @@ public class CloudCoreConfig {
         database.put("password", "");
         config.put("database", database);
 
-        // Global settings
-        config.put("server_name", "CloudCore");
+
+        Map<String, Object> worker = new HashMap<>();
+        worker.put("name", "proxy");
+        worker.put("key", generateRandomKey());
+        worker.put("uuid", UUID.randomUUID().toString());
+        config.put("worker", worker);
         
         return config;
+    }
+
+    private String generateRandomKey() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[20];
+        random.nextBytes(bytes);
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     @SuppressWarnings("unchecked")
@@ -113,5 +127,17 @@ public class CloudCoreConfig {
 
     public String getDatabasePassword() {
         return get("database.password", "password");
+    }
+
+    public String getWorkerName() {
+        return get("worker.name", "proxy");
+    }
+
+    public String getWorkerKey() {
+        return get("worker.key", "");
+    }
+
+    public String getWorkerUUID() {
+        return get("worker.uuid", "");
     }
 } 

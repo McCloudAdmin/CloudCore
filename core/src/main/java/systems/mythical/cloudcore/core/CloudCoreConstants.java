@@ -104,6 +104,12 @@ public final class CloudCoreConstants {
         public static final String PANEL_IMAGES_CREATE = "cloudcore.webpanel.images.create";
         public static final String PANEL_IMAGES_DELETE = "cloudcore.webpanel.images.delete";
 
+        // Web Panel Rules Management Permissions
+        public static final String PANEL_RULES_INDEX = "cloudcore.webpanel.rules.index";
+        public static final String PANEL_RULES_CREATE = "cloudcore.webpanel.rules.create";
+        public static final String PANEL_RULES_EDIT = "cloudcore.webpanel.rules.edit";
+        public static final String PANEL_RULES_DELETE = "cloudcore.webpanel.rules.delete";
+
         // Web Panel Pages Management Permissions
         public static final String PANEL_PAGES_INDEX = "cloudcore.webpanel.pages.index";
         public static final String PANEL_WIDGET_OVERVIEW = "cloudcore.webpanel.widget.overview";
@@ -113,6 +119,25 @@ public final class CloudCoreConstants {
         public static final String PANEL_WIDGET_SUPPORT = "cloudcore.webpanel.widget.support";
         public static final String PANEL_WIDGET_LOGS = "cloudcore.webpanel.widget.logs";
 
+
+        // Web Panel Applications Management Permissions
+        public static final String PANEL_APPLICATIONS_INDEX = "cloudcore.webpanel.applications.index";
+        public static final String PANEL_APPLICATIONS_VIEW = "cloudcore.webpanel.applications.view";
+        public static final String PANEL_APPLICATIONS_REVIEW = "cloudcore.webpanel.applications.review";
+        public static final String PANEL_APPLICATIONS_DELETE = "cloudcore.webpanel.applications.delete";
+        public static final String PANEL_APPLICATIONS_POSITIONS_MANAGE = "cloudcore.webpanel.applications.positions.manage";
+        public static final String PANEL_APPLICATIONS_QUESTIONS_MANAGE = "cloudcore.webpanel.applications.questions.manage";
+
+        // Web Panel Reports Management Permissions
+        public static final String PANEL_REPORTS_INDEX = "cloudcore.webpanel.reports.index";
+        public static final String PANEL_REPORTS_VIEW = "cloudcore.webpanel.reports.view";
+        public static final String PANEL_REPORTS_CREATE = "cloudcore.webpanel.reports.create";
+        public static final String PANEL_REPORTS_EDIT = "cloudcore.webpanel.reports.edit";
+        public static final String PANEL_REPORTS_DELETE = "cloudcore.webpanel.reports.delete";
+        public static final String PANEL_REPORTS_MANAGE = "cloudcore.webpanel.reports.manage";
+        
+        // Web Panel Permissions for lists
+        public static final String PANEL_LIST_STAFF_INDEX = "cloudcore.webpanel.list.staff.index"; // For a staff to be listed in the staff list
     }
 
     /**

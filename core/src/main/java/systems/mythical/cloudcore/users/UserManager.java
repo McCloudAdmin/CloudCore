@@ -58,7 +58,6 @@ public class UserManager {
                         user.setLastIp(ip);
                         user.setUuid(uuid);
                         user.setToken(token);
-                        user.setRole(1); // Default role
                         user.setVerified(false);
                         user.setAvatar("https://mc-heads.net/avatar/"+username);
                         user.setBackground("https://cdn.mythical.systems/background.gif");
@@ -133,7 +132,7 @@ public class UserManager {
         try (Connection conn = databaseManager.getConnection()) {
             String query = "UPDATE mccloudadmin_users SET " +
                     "username = ?, first_name = ?, last_name = ?, email = ?, " +
-                    "avatar = ?, credits = ?, background = ?, role = ?, " +
+                    "avatar = ?, credits = ?, background = ?, " +
                     "last_ip = ?, verified = ?, support_pin = ?, " +
                     "2fa_enabled = ?, 2fa_key = ?, 2fa_blocked = ?, " +
                     "discord_id = ?, github_id = ?, github_username = ?, " +
@@ -141,7 +140,7 @@ public class UserManager {
                     "discord_global_name = ?, discord_email = ?, discord_linked = ?, " +
                     "locked = ?, last_seen = ?, user_version = ?, " +
                     "user_client_name = ?, user_connected_server_name = ?, user_online = ?, userGroup = ?, " +
-                    "banned = ?, ban_reason = ? " +
+                    "banned = ?, ban_reason = ?, userGroupWeight = ? " +
                     "WHERE id = ?";
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -153,7 +152,6 @@ public class UserManager {
                 stmt.setString(paramIndex++, user.getAvatar());
                 stmt.setInt(paramIndex++, user.getCredits());
                 stmt.setString(paramIndex++, user.getBackground());
-                stmt.setInt(paramIndex++, user.getRole());
                 stmt.setString(paramIndex++, user.getLastIp());
                 stmt.setString(paramIndex++, user.isVerified() ? "true" : "false");
                 stmt.setString(paramIndex++, user.getSupportPin());
@@ -178,6 +176,7 @@ public class UserManager {
                 stmt.setString(paramIndex++, user.getUserGroup());
                 stmt.setString(paramIndex++, user.isBanned() ? "true" : "false");
                 stmt.setString(paramIndex++, user.getBanReason());
+                stmt.setInt(paramIndex++, user.getUserGroupWeight());
                 stmt.setInt(paramIndex, user.getId());
 
                 return stmt.executeUpdate() > 0;
@@ -267,7 +266,6 @@ public class UserManager {
         user.setBackground(rs.getString("background"));
         user.setUuid(UUID.fromString(rs.getString("uuid")));
         user.setToken(rs.getString("token"));
-        user.setRole(rs.getInt("role"));
         user.setFirstIp(rs.getString("first_ip"));
         user.setLastIp(rs.getString("last_ip"));
         user.setVerified(rs.getString("verified").equals("true"));
@@ -291,6 +289,7 @@ public class UserManager {
         user.setBanned(rs.getString("banned").equals("true"));
         user.setBanReason(rs.getString("ban_reason"));
         user.setUserGroup(rs.getString("userGroup"));
+        user.setUserGroupWeight(rs.getInt("userGroupWeight"));
         return user;
     }
 }

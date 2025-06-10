@@ -11,13 +11,18 @@ import java.util.UUID;
 import java.util.logging.Logger;
 import java.io.File;
 
+import systems.mythical.cloudcore.bungee.CloudCoreBungee;
+
 public class LiteBans {
     private static final Logger logger = Logger.getLogger(LiteBans.class.getName());
     private static final CloudCore cloudCore = new CloudCore(new File("plugins/CloudCore"), logger);
     private static final DatabaseManager databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
     private static final UserManager userManager = UserManager.getInstance(databaseManager, logger);
 
-    public static void registerEvents() {
+    public LiteBans(CloudCoreBungee cloudCoreBungee) {
+    }
+
+    public void registerEvents() {
         Events.get().register(new Events.Listener() {
             @Override
             public void entryAdded(Entry entry) {
@@ -56,7 +61,7 @@ public class LiteBans {
         });
     }
 
-    private static void handleBan(Entry entry) {
+    private void handleBan(Entry entry) {
         try {
             String uuid = entry.getUuid();
             if (uuid != null) {
@@ -74,7 +79,7 @@ public class LiteBans {
         }
     }
 
-    private static void handleUnban(Entry entry) {
+    private void handleUnban(Entry entry) {
         try {
             String uuid = entry.getUuid();
             if (uuid != null) {

@@ -26,7 +26,6 @@ public class ChatLogManager {
         this.databaseManager = databaseManager;
         this.logger = logger;
         this.gson = new Gson();
-        createTable();
     }
 
     public static ChatLogManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -34,28 +33,6 @@ public class ChatLogManager {
             instance = new ChatLogManager(databaseManager, logger);
         }
         return instance;
-    }
-
-    private void createTable() {
-        try (Connection conn = databaseManager.getConnection()) {
-            String sql = """
-                CREATE TABLE IF NOT EXISTS mccloudadmin_chatlogs (
-                    id INT NOT NULL,
-                    uuid VARCHAR(36) NOT NULL,
-                    content TEXT NOT NULL,
-                    server TEXT NOT NULL DEFAULT 'lobby',
-                    locked ENUM('false', 'true') NOT NULL DEFAULT 'false',
-                    deleted ENUM('false', 'true') NOT NULL DEFAULT 'false',
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-            """;
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.executeUpdate();
-            }
-        } catch (SQLException e) {
-            logger.severe("Failed to create chatlogs table: " + e.getMessage());
-        }
     }
 
     public ChatLog createChatLog(User user, User sender) {

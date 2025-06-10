@@ -25,6 +25,7 @@ import systems.mythical.cloudcore.velocity.hooks.LiteBans;
 import systems.mythical.cloudcore.velocity.events.OnChat;
 import systems.mythical.cloudcore.velocity.events.OnCommand;
 import systems.mythical.cloudcore.velocity.kick.VelocityKickExecutor;
+import systems.mythical.cloudcore.users.SystemUserManager;
 import systems.mythical.cloudcore.users.UserManager;
 import systems.mythical.cloudcore.permissions.PlatformPermissionBridge;
 import systems.mythical.cloudcore.velocity.commands.ProxyConsoleCommand;
@@ -55,7 +56,6 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 
-
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.plugin.Dependency;
@@ -70,6 +70,7 @@ import java.util.logging.Logger;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import systems.mythical.cloudcore.velocity.events.LuckPermsListener;
+import systems.mythical.cloudcore.velocity.worker.WorkerManager;
 
 @Plugin(id = "cloudcore", name = "CloudCore", version = "1.0-SNAPSHOT", description = "The plugin to run McCloudAdminPanel", authors = {
         "MythicalSystems" }, dependencies = {
@@ -143,7 +144,8 @@ public class CloudCoreVelocity {
             litebansEnabled = true;
             logger.info("LiteBans is installed, LiteBans support is enabled.");
             logger.info("CloudCore will process bans from LiteBans to panel.");
-            LiteBans.registerEvents();
+            LiteBans liteBans = new LiteBans(this);
+            liteBans.registerEvents();
         }
 
         KickExecutorFactory.setExecutor(VelocityKickExecutor.getInstance(server));
@@ -160,6 +162,11 @@ public class CloudCoreVelocity {
 
             logger.info("[CloudCore] Initializing database...");
             databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
+
+            // Initialize system user
+            SystemUserManager systemUserManager = SystemUserManager.getInstance(databaseManager, logger);
+            systemUserManager.createSystemUserIfNotExists();
+            logger.info("[CloudCore] System user initialized successfully!");
 
             // Initialize settings
             CloudSettings cloudSettings = CloudSettings.getInstance(databaseManager, logger);
@@ -217,7 +224,10 @@ public class CloudCoreVelocity {
             consoleTaskScheduler = new ConsoleTaskScheduler(this);
             consoleTaskScheduler.start();
 
-            // Register JoinMe command
+            // Initialize worker
+            WorkerManager worker = new WorkerManager(cloudCore.getConfig(), databaseManager, logger);
+            worker.initialize();
+            logger.info("[CloudCore] Worker initialized successfully!");
 
             logger.info("[CloudCore] CloudCore Velocity plugin has been enabled!");
         } catch (Exception e) {
@@ -320,7 +330,7 @@ public class CloudCoreVelocity {
             try {
                 // Create the JoinMe command instance
                 JoinMeCommand joinMeCommand = new JoinMeCommand(this, dataFolder);
-                
+
                 // Register the main joinme command
                 CommandMeta joinMeMeta = commandManager.metaBuilder("joinme")
                         .plugin(this)

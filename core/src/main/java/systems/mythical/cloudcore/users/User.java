@@ -18,7 +18,6 @@ public class User {
     private String background;
     private UUID uuid;
     private String token;
-    private int role;
     private String firstIp;
     private String lastIp;
     private boolean verified;
@@ -36,6 +35,7 @@ public class User {
     private String discordEmail;
     private boolean discordLinked;
     private String userGroup;
+    private int userGroupWeight;
     private boolean deleted;
     private boolean locked;
     private LocalDateTime lastSeen;
@@ -85,10 +85,7 @@ public class User {
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
-
-    public int getRole() { return role; }
-    public void setRole(int role) { this.role = role; }
-
+    
     public String getFirstIp() { return firstIp; }
     public void setFirstIp(String firstIp) { this.firstIp = firstIp; }
 
@@ -157,4 +154,7 @@ public class User {
 
     public String getUserGroup() { return userGroup; }
     public void setUserGroup(String userGroup) { this.userGroup = userGroup; }
+
+    public int getUserGroupWeight() { return userGroupWeight; }
+    public void setUserGroupWeight(int userGroupWeight) { this.userGroupWeight = userGroupWeight; }
 } 

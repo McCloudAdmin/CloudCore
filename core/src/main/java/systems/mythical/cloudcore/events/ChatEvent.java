@@ -3,6 +3,7 @@ package systems.mythical.cloudcore.events;
 import systems.mythical.cloudcore.chat.ChatLogManager;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import systems.mythical.cloudcore.permissions.PermissionChecker;
+import systems.mythical.cloudcore.redis.RedisManager;
 import systems.mythical.cloudcore.settings.CloudSettings;
 import systems.mythical.cloudcore.settings.CommonSettings;
 
@@ -14,6 +15,7 @@ public class ChatEvent {
     private static ChatLogManager chatLogManager;
     private static PermissionChecker permissionChecker;
     private static CloudSettings cloudSettings;
+    private static RedisManager redisManager;
 
     // Permission nodes
     public static final String CHAT_BYPASS_PERMISSION = "cloudcore.chat.bypass";
@@ -25,6 +27,23 @@ public class ChatEvent {
         chatLogManager = ChatLogManager.getInstance(databaseManager, logger);
         permissionChecker = PermissionChecker.getInstance();
         cloudSettings = CloudSettings.getInstance(databaseManager, logger);
+        
+        // Initialize Redis manager if Redis settings are available
+        try {
+            String redisHost = cloudSettings.getSetting("redis_host");
+            String redisPort = cloudSettings.getSetting("redis_port");
+            String redisPassword = cloudSettings.getSetting("redis_password");
+            
+            if (redisHost != null && redisPort != null) {
+                int port = Integer.parseInt(redisPort);
+                redisManager = RedisManager.getInstance(redisHost, port, redisPassword, logger);
+                logger.info("Redis manager initialized for chat logging");
+            } else {
+                logger.warning("Redis settings not found, falling back to direct database logging");
+            }
+        } catch (Exception e) {
+            logger.warning("Failed to initialize Redis manager: " + e.getMessage() + ". Falling back to direct database logging.");
+        }
     }
 
     /**
@@ -47,8 +66,16 @@ public class ChatEvent {
                 return true; // Allow message but don't log it
             }
 
-            // Log the chat message asynchronously
-            chatLogManager.logChatMessageAsync(uuid, content, server);
+            // Try to use Redis first, fallback to direct database logging
+            if (redisManager != null && redisManager.isAvailable()) {
+                // Queue the message in Redis for processing by the worker
+                redisManager.queueChatMessage(uuid, content, server, System.currentTimeMillis());
+                logger.fine("Chat message queued in Redis for player " + uuid);
+            } else {
+                // Fallback to direct database logging
+                chatLogManager.logChatMessageAsync(uuid, content, server);
+                logger.fine("Chat message logged directly to database for player " + uuid);
+            }
                         
             return true;
         } catch (Exception e) {

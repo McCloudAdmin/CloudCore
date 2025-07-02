@@ -18,7 +18,7 @@ public class ConsoleTaskScheduler {
     public ConsoleTaskScheduler(CloudCoreBungee plugin) {
         this.plugin = plugin;
         this.workerName = plugin.getCloudCore().getConfig().getWorkerName();
-        this.taskManager = ConsoleTaskManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger(), "proxy");
+        this.taskManager = ConsoleTaskManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
     }
 
     public void start() {

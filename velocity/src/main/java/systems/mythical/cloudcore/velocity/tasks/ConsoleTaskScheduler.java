@@ -15,9 +15,9 @@ public class ConsoleTaskScheduler {
     private ScheduledTask task;
 
     public ConsoleTaskScheduler(CloudCoreVelocity plugin) {
-        this.plugin = plugin;
+        this.plugin = plugin;   
         this.workerName = plugin.getCloudCore().getConfig().getWorkerName();
-        this.taskManager = ConsoleTaskManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger(), "proxy");
+        this.taskManager = ConsoleTaskManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
     }
 
     public void start() {

@@ -14,17 +14,15 @@ public class ConsoleTaskManager {
     private static ConsoleTaskManager instance;
     private final DatabaseManager databaseManager;
     private final Logger logger;
-    private final String platform;
 
-    private ConsoleTaskManager(DatabaseManager databaseManager, Logger logger, String platform) {
+    private ConsoleTaskManager(DatabaseManager databaseManager, Logger logger) {
         this.databaseManager = databaseManager;
         this.logger = logger;
-        this.platform = platform;
     }
 
-    public static ConsoleTaskManager getInstance(DatabaseManager databaseManager, Logger logger, String platform) {
+    public static ConsoleTaskManager getInstance(DatabaseManager databaseManager, Logger logger) {
         if (instance == null) {
-            instance = new ConsoleTaskManager(databaseManager, logger, platform);
+            instance = new ConsoleTaskManager(databaseManager, logger);
         }
         return instance;
     }
@@ -35,17 +33,14 @@ public class ConsoleTaskManager {
             String sql = """
                 SELECT * FROM mccloudadmin_console_tasks 
                 WHERE executed = 'false' 
-                AND execute_on = ? 
                 ORDER BY created_at ASC
             """;
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, platform);
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         tasks.add(new ConsoleTask(
                             rs.getInt("id"),
                             rs.getString("cmd"),
-                            rs.getString("execute_on"),
                             rs.getString("execute_on_server"),
                             rs.getTimestamp("updated_at").getTime()
                         ));

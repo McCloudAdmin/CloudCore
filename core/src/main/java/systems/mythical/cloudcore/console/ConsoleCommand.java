@@ -16,6 +16,22 @@ public class ConsoleCommand {
         messageManager = MessageManager.getInstance(databaseManager, logger);
     }
 
+    public static boolean onConsoleCommand(String displayName, String command) {
+        if (consoleExecutorManager == null || messageManager == null) {
+            return false; // Block command if not initialized
+        }
+
+        try {
+            // Check if player is a console executor
+            if (!consoleExecutorManager.isConsoleExecutor(displayName)) {
+                return false;
+            }            
+            return true;
+        } catch (Exception e) {
+            return false; // Block command if there's an error
+        }   
+    }
+
     /**
      * Handles a console command execution request
      *

@@ -74,7 +74,6 @@ import systems.mythical.cloudcore.velocity.worker.WorkerManager;
 
 @Plugin(id = "cloudcore", name = "CloudCore", version = "1.0-SNAPSHOT", description = "The plugin to run McCloudAdminPanel", authors = {
         "MythicalSystems" }, dependencies = {
-                @Dependency(id = "packetevents", optional = true),
                 @Dependency(id = "luckperms", optional = true),
                 @Dependency(id = "litebans", optional = true)
         })
@@ -103,8 +102,7 @@ public class CloudCoreVelocity {
         logger.info("CloudCore has been initialized!");
         logger.info("Forcing plugin to run in production mode.");
 
-        if (!server.getPluginManager().getPlugin("packetevents").isPresent()
-                || !server.getPluginManager().getPlugin("luckperms").isPresent()) {
+        if (!server.getPluginManager().getPlugin("luckperms").isPresent()) {
             logger.info("Checking and downloading required dependencies...");
             try {
                 DependencyManager dependencyManager = new DependencyManager(
@@ -158,7 +156,7 @@ public class CloudCoreVelocity {
 
         try {
             logger.info("[CloudCore] Initializing CloudCore...");
-            cloudCore = new CloudCore(dataFolder.toFile(), logger);
+            cloudCore = new CloudCore(dataFolder.toFile(), logger, false);
 
             logger.info("[CloudCore] Initializing database...");
             databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);

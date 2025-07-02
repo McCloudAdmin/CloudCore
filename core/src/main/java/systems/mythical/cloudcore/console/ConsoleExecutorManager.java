@@ -48,6 +48,29 @@ public class ConsoleExecutorManager {
     }
 
     /**
+     * Checks if a player is allowed to execute console commands
+     *
+     * @param displayName The display name of the player to check
+     * @return true if the player is allowed to execute console commands
+     */
+    public boolean isConsoleExecutor(String displayName) {
+        try (Connection conn = databaseManager.getConnection()) {
+            String query = "SELECT ce.id FROM mccloudadmin_console_executors ce " +
+                           "JOIN mccloudadmin_users u ON ce.uuid = u.uuid " +
+                           "WHERE u.username = ? AND ce.locked = 'false' AND ce.deleted = 'false'";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, displayName);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    return rs.next(); // Returns true if a record exists
+                }
+            }
+        } catch (SQLException e) {
+            logger.severe("Error checking console executor status for " + displayName + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Adds a player as a console executor
      *
      * @param uuid The UUID of the player to add

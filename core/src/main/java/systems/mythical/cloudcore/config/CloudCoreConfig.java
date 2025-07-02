@@ -17,25 +17,29 @@ public class CloudCoreConfig {
     private final File configFile;
     private final Logger logger;
     private final Yaml yaml;
+    private final boolean isSpigot;
 
-    private CloudCoreConfig(File dataFolder, Logger logger) {
+    private CloudCoreConfig(File dataFolder, Logger logger, boolean isSpigot) {
         this.logger = logger;
         this.configFile = new File(dataFolder, "config.yml");
         this.yaml = new Yaml();
-        this.config = loadConfig();
+        this.config = loadConfig(isSpigot);
+        this.isSpigot = isSpigot;
+        logger.info("CloudCoreConfig instance created for " + (isSpigot ? "Spigot" : "Proxy") + "!");
     }
 
-    public static CloudCoreConfig getInstance(File dataFolder, Logger logger) {
+    public static CloudCoreConfig getInstance(File dataFolder, Logger logger, boolean isSpigot) {
+        logger.info("Getting CloudCoreConfig instance for " + (isSpigot ? "Spigot" : "Proxy") + "!");
         if (instance == null) {
-            instance = new CloudCoreConfig(dataFolder, logger);
+            instance = new CloudCoreConfig(dataFolder, logger, isSpigot);
         }
         return instance;
     }
 
-    private Map<String, Object> loadConfig() {
+    private Map<String, Object> loadConfig(boolean isSpigot) {
         try {
             if (!configFile.exists()) {
-                Map<String, Object> defaultConfig = createDefaultConfig();
+                Map<String, Object> defaultConfig = createDefaultConfig(isSpigot);
                 saveConfig(defaultConfig);
                 return defaultConfig;
             }
@@ -45,7 +49,7 @@ public class CloudCoreConfig {
             }
         } catch (Exception e) {
             logger.severe("Error loading configuration: " + e.getMessage());
-            return createDefaultConfig();
+            return createDefaultConfig(isSpigot );
         }
     }
 
@@ -57,7 +61,7 @@ public class CloudCoreConfig {
         }
     }
 
-    private Map<String, Object> createDefaultConfig() {
+    private Map<String, Object> createDefaultConfig(boolean isSpigot) {
         Map<String, Object> config = new HashMap<>();
         
         // Debug mode
@@ -74,7 +78,13 @@ public class CloudCoreConfig {
 
 
         Map<String, Object> worker = new HashMap<>();
-        worker.put("name", "proxy");
+        if (isSpigot) {
+            worker.put("name", "server");
+            logger.info("[SPIGOT] Worker name set to server");
+        } else {
+            worker.put("name", "proxy");
+            logger.info("[PROXY] Worker name set to proxy");
+        }
         worker.put("key", generateRandomKey());
         worker.put("uuid", UUID.randomUUID().toString());
         config.put("worker", worker);
@@ -130,7 +140,11 @@ public class CloudCoreConfig {
     }
 
     public String getWorkerName() {
-        return get("worker.name", "proxy");
+        if (isSpigot) {
+            return get("worker.name", "server");
+        } else {
+            return get("worker.name", "proxy");
+        }
     }
 
     public String getWorkerKey() {

@@ -16,7 +16,7 @@ import java.io.File;
 
 public class LiteBans {
     private static final Logger logger = Logger.getLogger(LiteBans.class.getName());
-    private static final CloudCore cloudCore = new CloudCore(new File("plugins/CloudCore"), logger);
+    private static final CloudCore cloudCore = new CloudCore(new File("plugins/CloudCore"), logger, false);
     private static final DatabaseManager databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
     private static final UserManager userManager = UserManager.getInstance(databaseManager, logger);
 

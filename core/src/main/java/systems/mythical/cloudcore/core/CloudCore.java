@@ -8,20 +8,20 @@ public class CloudCore {
     private final Logger logger;
     private final File dataFolder;
     private final CloudCoreConfig config;
+    private final boolean isSpigot;
 
-    public CloudCore(File dataFolder, Logger logger) {
+    public CloudCore(File dataFolder, Logger logger, boolean isSpigot) {
         this.dataFolder = dataFolder;
         this.logger = logger;
-        
+        this.isSpigot = isSpigot;
         // Create data folder if it doesn't exist
         if (!dataFolder.exists()) {
             dataFolder.mkdirs();
         }
         
         // Initialize configuration
-        this.config = CloudCoreConfig.getInstance(dataFolder, logger);
-        
-        logger.info("CloudCore has been initialized!");
+        this.config = CloudCoreConfig.getInstance(dataFolder, logger, isSpigot);
+        logger.info("CloudCore has been initialized for " + (isSpigot ? "Spigot" : "Proxy") + "!");
         if (config.isDebugMode()) {
             logger.info("Debug mode is enabled");
         } else {

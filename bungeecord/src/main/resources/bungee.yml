@@ -3,7 +3,6 @@ main: systems.mythical.cloudcore.bungee.CloudCoreBungee
 version: 1.0-SNAPSHOT
 author: MythicalSystems
 softDepends:
-  - packetevents
   - LuckPerms
   - LiteBans
 description: Adds cooldown to server switching

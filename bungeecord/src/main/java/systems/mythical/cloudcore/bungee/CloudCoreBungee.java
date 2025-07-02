@@ -60,8 +60,7 @@ public class CloudCoreBungee extends Plugin {
         logger.info("CloudCore has been initialized!");
         logger.info("Forcing plugin to run in production mode.");
 
-        if (getProxy().getPluginManager().getPlugin("packetevents") == null
-                || getProxy().getPluginManager().getPlugin("LuckPerms") == null) {
+        if (getProxy().getPluginManager().getPlugin("LuckPerms") == null) {
             logger.info("Checking and downloading required dependencies...");
             try {
                 DependencyManager dependencyManager = new DependencyManager(
@@ -115,7 +114,7 @@ public class CloudCoreBungee extends Plugin {
 
         try {
             // Initialize CloudCore
-            cloudCore = new CloudCore(getDataFolder(), logger);
+            cloudCore = new CloudCore(getDataFolder(), logger, false);
 
             // Initialize database
             databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);

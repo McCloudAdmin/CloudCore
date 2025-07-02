@@ -100,14 +100,6 @@ public class DependencyManager {
     }
 
     private void initializeDependencies() {
-        // PacketEvents dependency
-        dependencies.put("packetevents", new Dependency.Builder("packetevents")
-            .version("2.8.0")
-            .url("https://github.com/retrooper/packetevents/releases/download/v2.8.0/packetevents-%s-2.8.0.jar")
-            .required(true)
-            .supportedPlatforms(Platform.VELOCITY, Platform.BUNGEECORD)
-            .build());
-
         // LuckPerms dependency with platform-specific URLs
         dependencies.put("LuckPerms", new Dependency.Builder("LuckPerms")
             .version("5.5.0")

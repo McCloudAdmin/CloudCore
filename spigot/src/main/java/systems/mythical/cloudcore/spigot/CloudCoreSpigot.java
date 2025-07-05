@@ -24,13 +24,20 @@ import systems.mythical.cloudcore.settings.SettingsManager;
 import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.core.CloudCoreConstants.Settings;
 import systems.mythical.cloudcore.spigot.stats.StatsBufferManager;
-import systems.mythical.cloudcore.spigot.stats.MoneyTracker;
+
 import com.earth2me.essentials.Essentials;
+import com.gamingmesh.jobs.Jobs;
+import com.wasteofplastic.askyblock.ASkyBlockAPI;
+
 import systems.mythical.cloudcore.spigot.hooks.CloudCoreSpigotDependency;
 import systems.mythical.cloudcore.spigot.hooks.EssentialsXDependencyHandler;
-import systems.mythical.cloudcore.spigot.stats.SkyBlockLevelTracker;
-import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import systems.mythical.cloudcore.spigot.hooks.ASkyBlockDependencyHandler;
+import systems.mythical.cloudcore.spigot.hooks.EssentialsXHandler;
+import systems.mythical.cloudcore.spigot.hooks.JobsDependencyHandler;
+import systems.mythical.cloudcore.spigot.hooks.JobsHandler;
+import systems.mythical.cloudcore.spigot.hooks.VoteHandler;
+import systems.mythical.cloudcore.spigot.hooks.BedwarsHandler;
+import systems.mythical.cloudcore.spigot.stats.UnifiedStatsTracker;
 
 public class CloudCoreSpigot extends JavaPlugin {
     private CloudCore cloudCore;
@@ -42,9 +49,11 @@ public class CloudCoreSpigot extends JavaPlugin {
     private SettingsManager settingsManager;
     private StatsManager statsManager;
     private StatsBufferManager statsBufferManager;
-    private MoneyTracker moneyTracker;
     private DependencyManager dependencyManager;
-    private SkyBlockLevelTracker skyBlockLevelTracker;
+    private EssentialsXHandler essentialsXHandler;
+    private JobsHandler jobsHandler;
+    private BedwarsHandler bedwarsHandler;
+    private UnifiedStatsTracker statsTracker;
 
     @Override
     public void onEnable() {
@@ -60,9 +69,8 @@ public class CloudCoreSpigot extends JavaPlugin {
             initStatsManager();
             initStats();
             initStatsBuffer();
-            initMoneyTracker();
-            initSkyBlockLevelTracker();
-            
+            initHandlers();
+            initUnifiedStatsTracker();
             getLogger().info("CloudCore Spigot plugin has been enabled!");
         } catch (Exception e) {
             getLogger().severe("Failed to enable CloudCore Spigot: " + e.getMessage());
@@ -73,17 +81,8 @@ public class CloudCoreSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (skyBlockLevelTracker != null) {
-            skyBlockLevelTracker.stop();
-        }
-        if (moneyTracker != null) {
-            moneyTracker.stop();
-        }
-        if (statsBufferManager != null) {
-            statsBufferManager.stopScheduledFlush();
-        }
-        if (consoleTaskScheduler != null) {
-            consoleTaskScheduler.stop();
+        if (statsTracker != null) {
+            statsTracker.stop();
         }
         if (databaseManager != null) {
             databaseManager.shutdown();
@@ -91,7 +90,7 @@ public class CloudCoreSpigot extends JavaPlugin {
         if (cloudCore != null) {
             cloudCore.shutdown();
         }
-        
+
         getLogger().info("CloudCore Spigot plugin has been disabled!");
     }
 
@@ -156,18 +155,6 @@ public class CloudCoreSpigot extends JavaPlugin {
         dependencyManager.loadDependencies();
     }
 
-    private void initMoneyTracker() {
-        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.ESSENTIALSX)) {
-            EssentialsXDependencyHandler handler = (EssentialsXDependencyHandler) dependencyManager.getHandler(CloudCoreSpigotDependency.ESSENTIALSX);
-            Essentials essentials = (Essentials) handler.get();
-            moneyTracker = new MoneyTracker(essentials, statsBufferManager, getWorkerName(), this);
-            moneyTracker.start();
-            getLogger().info("MoneyTracker started for EssentialsX.");
-        } else {
-            getLogger().info("EssentialsX not found, MoneyTracker not started.");
-        }
-    }
-
     private void initStats() {
         getServer().getPluginManager().registerEvents(new StatsOnPlayerDeath(this), this);
         getServer().getPluginManager().registerEvents(new StatsOnPlayerJoin(this), this);
@@ -185,16 +172,82 @@ public class CloudCoreSpigot extends JavaPlugin {
         getLogger().info("StatsBufferManager initialized and scheduled.");
     }
 
-    private void initSkyBlockLevelTracker() {
-        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.ASKYBLOCK)) {
-            ASkyBlockDependencyHandler handler = (ASkyBlockDependencyHandler) dependencyManager.getHandler(CloudCoreSpigotDependency.ASKYBLOCK);
-            ASkyBlockAPI api = ASkyBlockAPI.getInstance();
-            skyBlockLevelTracker = new SkyBlockLevelTracker(api, statsBufferManager, getWorkerName(), this);
-            skyBlockLevelTracker.start();
-            getLogger().info("SkyBlockLevelTracker started for ASkyBlock.");
+    private void initHandlers() {
+        // Initialize EssentialsX integration
+        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.ESSENTIALSX)) {
+            EssentialsXDependencyHandler handler = (EssentialsXDependencyHandler) dependencyManager
+                    .getHandler(CloudCoreSpigotDependency.ESSENTIALSX);
+            Essentials essentials = (Essentials) handler.get();
+            essentialsXHandler = new EssentialsXHandler(essentials);
+            getLogger().info("EssentialsX integration initialized.");
         } else {
-            getLogger().info("ASkyBlock not found, SkyBlockLevelTracker not started.");
+            getLogger().info("EssentialsX not found, integration not initialized.");
         }
+
+        // Initialize Jobs integration
+        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.JOBS)) {
+            JobsDependencyHandler handler = (JobsDependencyHandler) dependencyManager
+                    .getHandler(CloudCoreSpigotDependency.JOBS);
+            Jobs jobs = (Jobs) handler.get();
+            jobsHandler = new JobsHandler(jobs);
+            getLogger().info("Jobs integration initialized.");
+        } else {
+            getLogger().info("Jobs plugin not found, integration not initialized.");
+        }
+
+        // Initialize BedWars integration
+        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.BEDWARS)) {
+            try {
+                bedwarsHandler = new BedwarsHandler();
+                getLogger().info("BedWars integration initialized.");
+            } catch (Exception e) {
+                getLogger().warning("Failed to initialize BedWars integration: " + e.getMessage());
+            }
+        } else {
+            getLogger().info("BedWars1058 plugin not found, integration not initialized.");
+        }
+
+        // Initialize Votifier integration
+        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.VOTIFIER)) {
+            try {
+                getServer().getPluginManager().registerEvents(new VoteHandler(this), this);
+                getLogger().info("Votifier integration initialized.");
+            } catch (Exception e) {
+                getLogger().warning("Failed to initialize Votifier integration: " + e.getMessage());
+            }
+        } else {
+            getLogger().info("Votifier plugin not found, integration not initialized.");
+        }
+    }
+
+    private void initUnifiedStatsTracker() {
+        ASkyBlockAPI skyBlockAPI = null;
+        Essentials essentials = null;
+
+        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.ASKYBLOCK)) {
+            ASkyBlockDependencyHandler handler = (ASkyBlockDependencyHandler) dependencyManager
+                    .getHandler(CloudCoreSpigotDependency.ASKYBLOCK);
+            skyBlockAPI = ASkyBlockAPI.getInstance();
+        }
+
+        if (dependencyManager.isAvailable(CloudCoreSpigotDependency.ESSENTIALSX)) {
+            EssentialsXDependencyHandler handler = (EssentialsXDependencyHandler) dependencyManager
+                    .getHandler(CloudCoreSpigotDependency.ESSENTIALSX);
+            essentials = (Essentials) handler.get();
+        }
+
+
+        statsTracker = new UnifiedStatsTracker(
+                this,
+                statsBufferManager,
+                getWorkerName(),
+                jobsHandler,
+                essentialsXHandler,
+                bedwarsHandler,
+                essentials,
+                skyBlockAPI);
+        statsTracker.start();
+        getLogger().info("UnifiedStatsTracker started for all integrations.");
     }
 
     public CloudCore getCloudCore() {
@@ -219,5 +272,17 @@ public class CloudCoreSpigot extends JavaPlugin {
 
     public String getWorkerName() {
         return cloudCore.getConfig().getWorkerName();
+    }
+
+    public EssentialsXHandler getEssentialsXHandler() {
+        return essentialsXHandler;
+    }
+
+    public JobsHandler getJobsHandler() {
+        return jobsHandler;
+    }
+
+    public BedwarsHandler getBedwarsHandler() {
+        return bedwarsHandler;
     }
 }

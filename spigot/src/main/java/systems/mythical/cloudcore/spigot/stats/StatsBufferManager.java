@@ -12,6 +12,7 @@ public class StatsBufferManager {
     private final StatsManager statsManager;
     private final Plugin plugin;
     private final Map<String, AtomicInteger> buffer = new ConcurrentHashMap<>();
+    private final Map<String, String> stringValues = new ConcurrentHashMap<>();
     private int flushTaskId = -1;
 
     public StatsBufferManager(StatsManager statsManager, Plugin plugin) {
@@ -32,6 +33,7 @@ public class StatsBufferManager {
     }
 
     public void flushAll() {
+        // Flush numeric stats
         buffer.forEach((key, value) -> {
             String[] parts = key.split(":", 3);
             if (parts.length == 3) {
@@ -41,9 +43,18 @@ public class StatsBufferManager {
                 }
             }
         });
+
+        // Flush string stats
+        stringValues.forEach((key, value) -> {
+            String[] parts = key.split(":", 3);
+            if (parts.length == 3) {
+                statsManager.setOrUpdateStat(parts[0], parts[1], parts[2], value);
+            }
+        });
     }
 
     public void flushForUser(String user) {
+        // Flush numeric stats for user
         buffer.forEach((key, value) -> {
             if (key.startsWith(user + ":")) {
                 String[] parts = key.split(":", 3);
@@ -52,6 +63,16 @@ public class StatsBufferManager {
                     if (amount > 0) {
                         statsManager.incrementStatBy(parts[0], parts[1], parts[2], amount);
                     }
+                }
+            }
+        });
+
+        // Flush string stats for user
+        stringValues.forEach((key, value) -> {
+            if (key.startsWith(user + ":")) {
+                String[] parts = key.split(":", 3);
+                if (parts.length == 3) {
+                    statsManager.setOrUpdateStat(parts[0], parts[1], parts[2], value);
                 }
             }
         });
@@ -72,5 +93,21 @@ public class StatsBufferManager {
 
     public void setStat(String user, String worker, String type, double value) {
         statsManager.setStat(user, worker, type, value);
+    }
+
+    public void setStatString(String user, String worker, String type, String value) {
+        String key = key(user, worker, type);
+        if (value != null) {
+            stringValues.put(key, value);
+        } else {
+            stringValues.remove(key);
+        }
+    }
+
+    public void setStringValue(String user, String worker, String type, String value) {
+        String key = key(user, worker, type);
+        if (value != null) {
+            statsManager.setOrUpdateStat(user, worker, type, value);
+        }
     }
 } 

@@ -19,6 +19,9 @@ public class DependencyManager {
         handlers.put(CloudCoreSpigotDependency.VAULT, new VaultDependencyHandler(plugin));
         handlers.put(CloudCoreSpigotDependency.ESSENTIALSX, new EssentialsXDependencyHandler(plugin));
         handlers.put(CloudCoreSpigotDependency.ASKYBLOCK, new ASkyBlockDependencyHandler(plugin));
+        handlers.put(CloudCoreSpigotDependency.JOBS, new JobsDependencyHandler(plugin));
+        handlers.put(CloudCoreSpigotDependency.BEDWARS, new BedWarsDependencyHandler(plugin));
+        handlers.put(CloudCoreSpigotDependency.VOTIFIER, new NuVotifierDependencyHandler(plugin));
     }
 
     /**

@@ -5,11 +5,13 @@ author: Mythical
 description: A simple MySQL connection plugin
 softdepend:
   - LuckPerms
-  - Statz
   - Vault
   - Essentials
   - PlaceholderAPI
   - ASkyBlock
+  - Jobs
+  - BedWars1058
+  - Votifier
 commands:
   spigotconsole:
     description: Execute a command as the server console (Spigot).

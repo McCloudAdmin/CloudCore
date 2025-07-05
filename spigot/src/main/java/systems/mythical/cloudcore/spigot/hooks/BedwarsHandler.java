@@ -12,9 +12,25 @@ public class BedwarsHandler {
     public BedwarsHandler() {
         bedwarsAPI = Bukkit.getServicesManager().getRegistration(BedWars.class).getProvider();
     }
-
+    /**
+     * Get player's level in BedWars
+     * 
+     * @param player The player to check
+     * @return The player's level
+     */
     public int getLevel(Player player) {
         return bedwarsAPI.getLevelsUtil().getPlayerLevel(player);
+    }
+    /**
+     * Get player's coins in BedWars
+     * 
+     * @param player The player to check
+     * @return The player's coins
+     * 
+     * @deprecated Please use the vault api!
+     */
+    public int getCoins(Player player) {
+        return 0;
     }
 
     /**

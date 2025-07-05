@@ -100,7 +100,7 @@ public class UnifiedStatsTracker {
         if (jobsHandler != null) {
             statsBuffer.setStat(uuid, workerName, "jobs.current_points", jobsHandler.getCurrentPoints(player));
             statsBuffer.setStat(uuid, workerName, "jobs.total_points", jobsHandler.getTotalPoints(player));
-            
+            statsBuffer.setStat(uuid, workerName, "jobs.total_levels", jobsHandler.getCurrentLevel(player));
             // Uncomment and customize if you want to track specific jobs:
             /*
             String[] jobsToTrack = {"miner", "farmer", "hunter"};
@@ -128,6 +128,9 @@ public class UnifiedStatsTracker {
             if (user != null) {
                 double balance = user.getMoney().doubleValue();
                 statsBuffer.setStat(uuid, workerName, "essentials.balance", balance);
+                if (bedwarsHandler != null) {
+                    statsBuffer.setStat(uuid, workerName, "bedwars.coins", (double) bedwarsHandler.getCoins(player));
+                }
                 lastBalances.put(uuid, balance);
             }
         }

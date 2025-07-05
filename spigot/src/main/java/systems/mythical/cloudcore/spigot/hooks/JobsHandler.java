@@ -19,7 +19,8 @@ public class JobsHandler {
      * @return The current points, or 0 if player has no points or Jobs data
      */
     public double getCurrentPoints(Player player) {
-        JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
+        @SuppressWarnings("static-access")
+		JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
         if (jobsPlayer != null) {
             List<JobProgression> jobsList = jobsPlayer.getJobProgression();
             if (jobsList != null) {
@@ -39,7 +40,8 @@ public class JobsHandler {
      * @return The total points earned across all jobs, or 0 if player has no points or Jobs data
      */
     public double getTotalPoints(Player player) {
-        JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
+        @SuppressWarnings("static-access")
+		JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
         if (jobsPlayer != null) {
             List<JobProgression> jobsList = jobsPlayer.getJobProgression();
             if (jobsList != null) {
@@ -60,7 +62,8 @@ public class JobsHandler {
      * @return The current experience, or 0 if player doesn't have the job or Jobs data
      */
     public double getCurrentExp(Player player, String jobName) {
-        JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
+        @SuppressWarnings("static-access")
+		JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
         if (jobsPlayer != null) {
             List<JobProgression> jobsList = jobsPlayer.getJobProgression();
             if (jobsList != null) {
@@ -81,7 +84,8 @@ public class JobsHandler {
      * @return The current level, or 0 if player doesn't have the job or Jobs data
      */
     public int getCurrentLevel(Player player, String jobName) {
-        JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
+        @SuppressWarnings("static-access")
+		JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
         if (jobsPlayer != null) {
             List<JobProgression> jobsList = jobsPlayer.getJobProgression();
             if (jobsList != null) {
@@ -91,6 +95,15 @@ public class JobsHandler {
                     }
                 }
             }
+        }
+        return 0;
+    }
+
+    public int getCurrentLevel(Player player) {
+        @SuppressWarnings("static-access")
+		JobsPlayer jobsPlayer = jobs.getPlayerManager().getJobsPlayer(player);
+        if (jobsPlayer != null) {
+            return jobsPlayer.getTotalLevels();
         }
         return 0;
     }

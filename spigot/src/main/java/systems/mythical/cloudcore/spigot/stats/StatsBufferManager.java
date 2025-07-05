@@ -105,7 +105,8 @@ public class StatsBufferManager {
     }
 
     public void setStringValue(String user, String worker, String type, String value) {
-        String key = key(user, worker, type);
+        @SuppressWarnings("unused")
+		String key = key(user, worker, type);
         if (value != null) {
             statsManager.setOrUpdateStat(user, worker, type, value);
         }

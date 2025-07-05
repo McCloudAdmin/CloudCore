@@ -1,7 +1,11 @@
 package systems.mythical.cloudcore.spigot;
-
+/**
+ * Bukkit Imports
+ */
 import org.bukkit.plugin.java.JavaPlugin;
-
+/*
+ * CloudCore Imports
+ */
 import systems.mythical.cloudcore.console.ConsoleCommand;
 import systems.mythical.cloudcore.core.CloudCore;
 import systems.mythical.cloudcore.database.DatabaseManager;
@@ -25,10 +29,16 @@ import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.core.CloudCoreConstants.Settings;
 import systems.mythical.cloudcore.spigot.stats.StatsBufferManager;
 
+/**
+ * Plugin Dependencies
+ */
 import com.earth2me.essentials.Essentials;
 import com.gamingmesh.jobs.Jobs;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 
+/**
+ * CloudCore Spigot Hooks
+ */
 import systems.mythical.cloudcore.spigot.hooks.CloudCoreSpigotDependency;
 import systems.mythical.cloudcore.spigot.hooks.EssentialsXDependencyHandler;
 import systems.mythical.cloudcore.spigot.hooks.ASkyBlockDependencyHandler;
@@ -225,7 +235,8 @@ public class CloudCoreSpigot extends JavaPlugin {
         Essentials essentials = null;
 
         if (dependencyManager.isAvailable(CloudCoreSpigotDependency.ASKYBLOCK)) {
-            ASkyBlockDependencyHandler handler = (ASkyBlockDependencyHandler) dependencyManager
+            @SuppressWarnings("unused")
+			ASkyBlockDependencyHandler handler = (ASkyBlockDependencyHandler) dependencyManager
                     .getHandler(CloudCoreSpigotDependency.ASKYBLOCK);
             skyBlockAPI = ASkyBlockAPI.getInstance();
         }
@@ -235,7 +246,6 @@ public class CloudCoreSpigot extends JavaPlugin {
                     .getHandler(CloudCoreSpigotDependency.ESSENTIALSX);
             essentials = (Essentials) handler.get();
         }
-
 
         statsTracker = new UnifiedStatsTracker(
                 this,

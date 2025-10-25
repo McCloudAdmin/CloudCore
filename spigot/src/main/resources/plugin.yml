@@ -1,25 +1,6 @@
-name: CloudCore
-version: 1.0.0
-main: systems.mythical.cloudcore.spigot.CloudCoreSpigot
-author: Mythical
-description: A simple MySQL connection plugin
-softdepend:
-  - LuckPerms
-  - Vault
-  - Essentials
-  - PlaceholderAPI
-  - ASkyBlock
-  - Jobs
-  - BedWars1058
-  - Votifier
-commands:
-  spigotconsole:
-    description: Execute a command as the server console (Spigot).
-    usage: /spigotconsole <command>
-    aliases: [scex, cex]
-  scex:
-    description: Alias for /spigotconsole
-    usage: /scex <command>
-  cex:
-    description: Alias for /spigotconsole
-    usage: /cex <command>
+name: CloudCore-Spigot
+version: 1.0-SNAPSHOT
+main: systems.mythical.cloudcore.CloudCoreSpigot
+api-version: 1.19
+description: CloudCore Spigot Plugin with Database Connection
+author: Mythical Systems

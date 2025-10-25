@@ -1,8 +1,5 @@
-name: CloudCore
-main: systems.mythical.cloudcore.bungee.CloudCoreBungee
+name: CloudCore-BungeeCord
 version: 1.0-SNAPSHOT
-author: MythicalSystems
-softDepends:
-  - LuckPerms
-  - LiteBans
-description: Adds cooldown to server switching
+main: systems.mythical.cloudcore.CloudCoreBungeeCord
+author: Mythical Systems
+description: CloudCore BungeeCord Plugin with Database Connection

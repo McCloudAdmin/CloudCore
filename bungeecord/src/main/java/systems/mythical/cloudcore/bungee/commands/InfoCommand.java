@@ -30,6 +30,7 @@ public class InfoCommand extends Command implements TabExecutor {
         this.dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!(sender instanceof ProxiedPlayer)) {
@@ -60,6 +61,7 @@ public class InfoCommand extends Command implements TabExecutor {
         displayUserInfo(sender, user, player);
     }
 
+    @SuppressWarnings("deprecation")
     private void displayUserInfo(CommandSender sender, User user, ProxiedPlayer viewer) {
         // Header
         sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.INFORMATION_HEADER)));

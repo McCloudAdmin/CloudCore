@@ -30,7 +30,7 @@ public class CloudCore {
     }
     
     public void shutdown() {
-        logger.info("Shutting down CloudCore...");
+        logger.info("Shutting down CloudCore ... (This may take a few seconds) on platform: "+(isSpigot?"Spigot":"Proxy"));
     }
 
     public CloudCoreConfig getConfig() {

@@ -61,6 +61,7 @@ public class JoinMeCommand extends Command {
         plugin.getProxy().getScheduler().schedule(plugin, tokenManager::cleanupExpiredTokens, 5, 5, TimeUnit.MINUTES);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!(sender instanceof ProxiedPlayer)) {

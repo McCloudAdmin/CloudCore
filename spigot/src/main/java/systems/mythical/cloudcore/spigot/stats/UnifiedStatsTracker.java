@@ -129,7 +129,7 @@ public class UnifiedStatsTracker {
                 double balance = user.getMoney().doubleValue();
                 statsBuffer.setStat(uuid, workerName, "essentials.balance", balance);
                 if (bedwarsHandler != null) {
-                    statsBuffer.setStat(uuid, workerName, "bedwars.coins", (double) bedwarsHandler.getCoins(player));
+                    statsBuffer.setStat(uuid, workerName, "bedwars.coins", (double) balance);
                 }
                 lastBalances.put(uuid, balance);
             }
@@ -152,7 +152,7 @@ public class UnifiedStatsTracker {
 
     private void updateSkyBlockStats(Player player, String uuid) {
         if (skyBlockAPI != null) {
-            statsBuffer.setStat(uuid, workerName, "askyblock.island_level", (double) skyBlockAPI.getIslandLevel(player.getUniqueId()));
+            statsBuffer.setStat(uuid, workerName, "askyblock.island_level", (double) skyBlockAPI.getLongIslandLevel(player.getUniqueId()));
         }
     }
 } 

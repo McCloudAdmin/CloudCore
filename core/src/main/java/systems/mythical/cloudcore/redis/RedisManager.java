@@ -16,8 +16,10 @@ public class RedisManager {
     private final Gson gson;
     private final Logger logger;
     private final String chatQueueKey = "mccloudadmin:chat:queue";
+    @SuppressWarnings("unused")
     private final String chatProcessingKey = "mccloudadmin:chat:processing";
 
+    @SuppressWarnings("deprecation")
     private RedisManager(String host, int port, String password, Logger logger) {
         this.logger = logger;
         this.gson = new Gson();

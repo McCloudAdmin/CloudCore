@@ -23,6 +23,7 @@ public class Social extends Command {
         this.messageManager = MessageManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(CommandSender sender, String[] args) {
         // Create clickable message with URL

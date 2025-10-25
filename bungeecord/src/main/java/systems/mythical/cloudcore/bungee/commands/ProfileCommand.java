@@ -33,6 +33,7 @@ public class ProfileCommand extends Command implements TabExecutor {
         
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length != 1) {

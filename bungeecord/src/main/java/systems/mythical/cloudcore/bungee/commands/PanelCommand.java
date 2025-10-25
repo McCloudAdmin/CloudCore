@@ -33,6 +33,7 @@ public class PanelCommand extends Command implements TabExecutor {
         this.userManager = UserManager.getInstance(plugin.getDatabaseManager(), plugin.getLogger());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!(sender instanceof ProxiedPlayer)) {
@@ -61,6 +62,7 @@ public class PanelCommand extends Command implements TabExecutor {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void handleLogin(ProxiedPlayer player) {
         Optional<User> userOpt = userManager.getUserByUuid(player.getUniqueId());
         if (userOpt.isEmpty()) {
@@ -82,6 +84,7 @@ public class PanelCommand extends Command implements TabExecutor {
         player.sendMessage(builder.create());
     }
 
+    @SuppressWarnings("deprecation")
     private void handleReset(ProxiedPlayer player) {
         Optional<User> userOpt = userManager.getUserByUuid(player.getUniqueId());
         if (userOpt.isEmpty()) {
@@ -103,7 +106,7 @@ public class PanelCommand extends Command implements TabExecutor {
 
         player.sendMessage(builder.create());
     }
-
+    @SuppressWarnings("deprecation")
     private void sendUsage(CommandSender sender) {
         sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.PANEL_USAGE)));
     }

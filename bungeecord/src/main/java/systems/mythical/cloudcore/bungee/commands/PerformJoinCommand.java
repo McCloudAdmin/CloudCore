@@ -17,6 +17,7 @@ public class PerformJoinCommand extends Command {
         this.tokenManager = JoinMeTokenManager.getInstance();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!(sender instanceof ProxiedPlayer)) {

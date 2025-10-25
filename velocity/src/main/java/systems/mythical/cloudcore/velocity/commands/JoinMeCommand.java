@@ -66,6 +66,7 @@ public class JoinMeCommand implements SimpleCommand {
             .schedule();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(final Invocation invocation) {
         CommandSource source = invocation.source();

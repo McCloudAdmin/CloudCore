@@ -8,7 +8,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
 # Clean up old files
 rm -f CloudCore.jar
 rm -rf ./tests/bungee/plugins/CloudCore.jar
@@ -22,6 +21,13 @@ rm -rf ./tests/spigot/plugins/CloudCore
 cp ./velocity/target/cloudcore-velocity-*-SNAPSHOT.jar ./tests/velo/plugins/CloudCore.jar
 cp ./bungeecord/target/cloudcore-bungeecord-*-SNAPSHOT.jar ./tests/bungee/plugins/CloudCore.jar
 cp ./spigot/target/cloudcore-spigot-*-SNAPSHOT.jar ./tests/spigot/plugins/CloudCore.jar
+
+rm -rf ./prod
+mkdir -p ./prod
+cp ./velocity/target/cloudcore-velocity-*-SNAPSHOT.jar ./prod/CloudCore-Velocity.jar
+cp ./bungeecord/target/cloudcore-bungeecord-*-SNAPSHOT.jar ./prod/CloudCore-Bungee.jar
+cp ./spigot/target/cloudcore-spigot-*-SNAPSHOT.jar ./prod/CloudCore-Spigot.jar
+
 
 echo "Build complete!"
 echo "JARs are available at:"

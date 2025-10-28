@@ -21,7 +21,7 @@ public class OnServerSwitch {
                 player.getUniqueId(),
                 serverName
             );
-            logger.info("Processed server switch for player: " + player.getUsername() + " to " + serverName);
+            logger.debug("Processed server switch for player: " + player.getUsername() + " to " + serverName);
         } catch (Exception e) {
             logger.error("Error processing server switch: " + e.getMessage());
             e.printStackTrace();

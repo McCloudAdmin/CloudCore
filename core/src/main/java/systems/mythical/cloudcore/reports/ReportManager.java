@@ -28,7 +28,6 @@ public class ReportManager {
     private final Map<UUID, Long> reportCooldowns;
 
     // Settings
-    private static final CommonSettings.BooleanSetting ENABLE_REPORT_SYSTEM = new CommonSettings.BooleanSetting("enable_report_system", true);
     private static final CommonSettings.IntegerSetting REPORT_COOLDOWN = new CommonSettings.IntegerSetting("report_cooldown", 120);
 
     private ReportManager(DatabaseManager databaseManager, Logger platformLogger) {
@@ -46,19 +45,16 @@ public class ReportManager {
         return instance;
     }
 
-    public boolean isReportSystemEnabled() {
-        return ENABLE_REPORT_SYSTEM.parseValue(cloudSettings.getSetting(ENABLE_REPORT_SYSTEM.getName()));
-    }
 
     public int getReportCooldown() {
-        return REPORT_COOLDOWN.parseValue(cloudSettings.getSetting(REPORT_COOLDOWN.getName()));
+        int value = REPORT_COOLDOWN.parseValue(cloudSettings.getSetting(REPORT_COOLDOWN.getName()));
+        if (value < 0) {
+            return 0;
+        }
+        return value;
     }
 
     public boolean canReport(UUID reporter) {
-        if (!isReportSystemEnabled()) {
-            return false;
-        }
-
         Long lastReport = reportCooldowns.get(reporter);
         if (lastReport == null) {
             return true;

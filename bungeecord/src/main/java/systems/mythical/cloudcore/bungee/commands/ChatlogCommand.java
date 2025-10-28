@@ -69,6 +69,10 @@ public class ChatlogCommand extends Command implements TabExecutor {
             sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.CHATLOG_NOT_FOUND)));
             return;
         }
+        if (senderOpt.isEmpty()) {
+            sender.sendMessage(TextComponent.fromLegacyText("§cYour account was not found in our database. Please relog to register."));
+            return;
+        }
 
         // Check cooldown only right before actually creating a chatlog
         long now = System.currentTimeMillis();

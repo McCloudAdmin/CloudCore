@@ -6,6 +6,7 @@ import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -36,6 +37,11 @@ public class ChatLogManager {
      */
     public void logChatMessage(UUID uuid, String content, String server) {
         try (Connection conn = databaseManager.getConnection()) {
+            // Ensure the user exists before logging
+            if (!userExists(conn, uuid)) {
+                cloudLogger.debug("Skipping chat log for non-existent user " + uuid);
+                return;
+            }
             String query = "INSERT INTO mccloudadmin_chatlogs (uuid, content, server) VALUES (?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
@@ -57,5 +63,18 @@ public class ChatLogManager {
      */
     public void logChatMessageAsync(UUID uuid, String content, String server) {
         new Thread(() -> logChatMessage(uuid, content, server)).start();
+    }
+
+    private boolean userExists(Connection conn, UUID uuid) {
+        String existsSql = "SELECT 1 FROM mccloudadmin_users WHERE uuid = ? AND deleted = 'false' LIMIT 1";
+        try (PreparedStatement stmt = conn.prepareStatement(existsSql)) {
+            stmt.setString(1, uuid.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            cloudLogger.error("Error checking user existence for " + uuid + ": " + e.getMessage());
+            return false;
+        }
     }
 }

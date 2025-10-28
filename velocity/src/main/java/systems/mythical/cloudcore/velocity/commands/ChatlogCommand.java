@@ -75,7 +75,7 @@ public class ChatlogCommand implements SimpleCommand {
             return;
         }
         if (senderOpt.isEmpty()) {
-            source.sendMessage(legacySerializer.deserialize("&cCould not find your user profile."));
+            source.sendMessage(legacySerializer.deserialize("&cYour account was not found in our database. Please relog to register."));
             return;
         }
 

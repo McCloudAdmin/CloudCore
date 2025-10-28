@@ -52,7 +52,18 @@ public class CommonSettings {
 
         @Override
         public Integer parseValue(String value) {
-            return Integer.parseInt(value);
+            if (value == null) {
+                return defaultValue;
+            }
+            String trimmed = value.trim();
+            if (trimmed.isEmpty()) {
+                return defaultValue;
+            }
+            try {
+                return Integer.parseInt(trimmed);
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
         }
 
         @Override

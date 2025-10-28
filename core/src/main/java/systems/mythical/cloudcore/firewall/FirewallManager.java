@@ -7,6 +7,8 @@ import systems.mythical.cloudcore.settings.CloudSettings;
 import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.settings.Setting;
 import systems.mythical.cloudcore.messages.MessageManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,21 +24,21 @@ public class FirewallManager {
     private final UserManager userManager;
     private final CloudSettings settings;
     private final MessageManager messageManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
     // Define settings
     private static final Setting<Boolean> FIREWALL_ENABLED = new CommonSettings.BooleanSetting("firewall_enabled", false);
     private static final Setting<Boolean> FIREWALL_BLOCK_VPN = new CommonSettings.BooleanSetting("firewall_block_vpn", false);
     private static final Setting<Boolean> FIREWALL_BLOCK_ALTS = new CommonSettings.BooleanSetting("firewall_block_alts", false);
 
-    private FirewallManager(DatabaseManager databaseManager, Logger logger) {
+    private FirewallManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.proxyListManager = ProxyListManager.getInstance(databaseManager, logger);
-        this.ipRelationshipManager = IPRelationshipManager.getInstance(databaseManager, logger);
-        this.userManager = UserManager.getInstance(databaseManager, logger);
-        this.settings = CloudSettings.getInstance(databaseManager, logger);
-        this.messageManager = MessageManager.getInstance(databaseManager, logger);
-        this.logger = logger;
+        this.proxyListManager = ProxyListManager.getInstance(databaseManager, platformLogger);
+        this.ipRelationshipManager = IPRelationshipManager.getInstance(databaseManager, platformLogger);
+        this.userManager = UserManager.getInstance(databaseManager, platformLogger);
+        this.settings = CloudSettings.getInstance(databaseManager, platformLogger);
+        this.messageManager = MessageManager.getInstance(databaseManager, platformLogger);
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static FirewallManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -66,7 +68,7 @@ public class FirewallManager {
         try {
             return setting.parseValue(value);
         } catch (Exception e) {
-            logger.warning("Error parsing setting " + setting.getName() + ": " + e.getMessage());
+            cloudLogger.warn("Error parsing setting " + setting.getName() + ": " + e.getMessage());
             return setting.getDefaultValue();
         }
     }
@@ -124,4 +126,4 @@ public class FirewallManager {
             return reason;
         }
     }
-} 
+}

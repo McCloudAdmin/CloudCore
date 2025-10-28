@@ -11,15 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class WebPanelPermissionManager {
     private static WebPanelPermissionManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     private WebPanelPermissionManager(DatabaseManager databaseManager, Logger logger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
     }
 
     public static WebPanelPermissionManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -80,7 +81,7 @@ public class WebPanelPermissionManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error updating web panel permissions for user " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error updating web panel permissions for user " + uuid + ": " + e.getMessage());
         }
     }
 
@@ -103,7 +104,7 @@ public class WebPanelPermissionManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting web panel permissions for user " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error getting web panel permissions for user " + uuid + ": " + e.getMessage());
         }
         return permissions;
     }
@@ -184,7 +185,7 @@ public class WebPanelPermissionManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error checking web panel permission for user " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error checking web panel permission for user " + uuid + ": " + e.getMessage());
         }
         return false;
     }

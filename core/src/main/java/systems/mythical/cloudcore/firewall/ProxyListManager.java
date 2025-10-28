@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.firewall;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,11 +12,11 @@ import java.util.logging.Logger;
 public class ProxyListManager {
     private static ProxyListManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private ProxyListManager(DatabaseManager databaseManager, Logger logger) {
+    private ProxyListManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static ProxyListManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -34,7 +36,7 @@ public class ProxyListManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error checking proxy IP: " + e.getMessage());
+            cloudLogger.error("Error checking proxy IP: " + e.getMessage());
             return false;
         }
     }
@@ -51,7 +53,7 @@ public class ProxyListManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting proxy list: " + e.getMessage());
+            cloudLogger.error("Error getting proxy list: " + e.getMessage());
         }
         return proxies;
     }
@@ -66,4 +68,4 @@ public class ProxyListManager {
         proxy.setLocked(rs.getString("locked").equals("true"));
         return proxy;
     }
-} 
+}

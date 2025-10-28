@@ -4,10 +4,11 @@ import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 public class OnServerSwitch implements Listener {
-    private static final Logger logger = Logger.getLogger(OnServerSwitch.class.getName());
+    private static final CloudLogger logger = CloudLoggerFactory.get();
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onServerSwitch(ServerSwitchEvent event) {
@@ -24,9 +25,9 @@ public class OnServerSwitch implements Listener {
                 event.getPlayer().getUniqueId(),
                 serverName
             );
-            logger.info("Processed server switch for player: " + event.getPlayer().getName() + " to " + serverName);
+            logger.debug("Processed server switch for player: " + event.getPlayer().getName() + " to " + serverName);
         } catch (Exception e) {
-            logger.severe("Error processing server switch: " + e.getMessage());
+            logger.error("Error processing server switch: " + e.getMessage());
             e.printStackTrace();
         }
     }

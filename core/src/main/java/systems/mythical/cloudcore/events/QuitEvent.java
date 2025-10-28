@@ -10,20 +10,24 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class QuitEvent {
     private static final Logger logger = Logger.getLogger(QuitEvent.class.getName());
     private static UserManager userManager;
     private static UserActivityManager activityManager;
+    private static CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     public static void initialize(DatabaseManager databaseManager) {
         userManager = UserManager.getInstance(databaseManager, logger);
         activityManager = UserActivityManager.getInstance(databaseManager, logger);
+        cloudLogger = CloudLoggerFactory.get();
     }
 
     public static void onPlayerQuit(String username, UUID uuid) {
         if (userManager == null || activityManager == null) {
-            logger.severe("Managers not initialized! Call QuitEvent.initialize() first.");
+            cloudLogger.error("Managers not initialized! Call QuitEvent.initialize() first.");
             return;
         }
         CompletableFuture.runAsync(() -> {
@@ -44,12 +48,12 @@ public class QuitEvent {
                     user.setLastSeen(LocalDateTime.now());
                     userManager.updateUser(user);
 
-                    logger.info("Updated user status for: " + username + " (" + uuid + ")");
+                    cloudLogger.debug("Updated user status for: " + username + " (" + uuid + ")");
                 } else {
-                    logger.warning("User not found for quit event: " + username + " (" + uuid + ")");
+                    cloudLogger.warn("User not found for quit event: " + username + " (" + uuid + ")");
                 }
             } catch (Exception e) {
-                logger.severe("Error handling player quit: " + e.getMessage());
+                cloudLogger.error("Error handling player quit: " + e.getMessage());
             }
         });
     }

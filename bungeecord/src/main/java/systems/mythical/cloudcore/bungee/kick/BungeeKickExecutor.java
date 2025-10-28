@@ -3,13 +3,14 @@ package systems.mythical.cloudcore.bungee.kick;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import systems.mythical.cloudcore.kick.KickExecutor;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class BungeeKickExecutor implements KickExecutor {
     private static BungeeKickExecutor instance;
-    private static final Logger logger = Logger.getLogger(BungeeKickExecutor.class.getName());
+    private static final CloudLogger logger = CloudLoggerFactory.get();
 
     private BungeeKickExecutor() {}
 
@@ -33,7 +34,7 @@ public class BungeeKickExecutor implements KickExecutor {
                         player.disconnect(TextComponent.fromLegacyText(reason));
                         logger.info("Successfully kicked player " + player.getName() + " (" + uuid + "): " + reason);
                     } catch (Exception e) {
-                        logger.severe("Failed to kick player " + player.getName() + " (" + uuid + "): " + e.getMessage());
+                        logger.error("Failed to kick player " + player.getName() + " (" + uuid + "): " + e.getMessage());
                     }
                 }
             );

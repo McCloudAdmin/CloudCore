@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.users;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,13 +14,13 @@ import java.util.logging.Logger;
 public class SystemUserManager {
     private static SystemUserManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
     private final UserManager userManager;
 
-    private SystemUserManager(DatabaseManager databaseManager, Logger logger) {
+    private SystemUserManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
-        this.userManager = UserManager.getInstance(databaseManager, logger);
+        this.cloudLogger = CloudLoggerFactory.get();
+        this.userManager = UserManager.getInstance(databaseManager, platformLogger);
     }
 
     public static SystemUserManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -33,15 +35,15 @@ public class SystemUserManager {
             // Check if system user already exists
             Optional<User> existingUser = userManager.getUserById(0);
             if (existingUser.isPresent()) {
-                logger.info("System user already exists");
+                cloudLogger.debug("System user already exists");
                 return;
             }
 
             // Create the system user
             createSystemUser();
-            logger.info("System user created successfully");
+            cloudLogger.info("System user created successfully");
         } catch (Exception e) {
-            logger.severe("Error creating system user: " + e.getMessage());
+            cloudLogger.error("Error creating system user: " + e.getMessage());
             e.printStackTrace();
         }
     }

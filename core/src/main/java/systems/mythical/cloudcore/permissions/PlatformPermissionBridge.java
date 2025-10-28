@@ -2,10 +2,11 @@ package systems.mythical.cloudcore.permissions;
 
 import java.util.UUID;
 import java.util.function.BiFunction;
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class PlatformPermissionBridge {
-    private static final Logger logger = Logger.getLogger(PlatformPermissionBridge.class.getName());
+    private static final CloudLogger cloudLogger = CloudLoggerFactory.get();
     private static BiFunction<UUID, String, Boolean> permissionChecker;
 
     private PlatformPermissionBridge() {}
@@ -29,7 +30,7 @@ public class PlatformPermissionBridge {
      */
     public static boolean checkPermission(UUID uuid, String permission) {
         if (permissionChecker == null) {
-            logger.warning("No permission checker set! Defaulting to false for permission: " + permission);
+            cloudLogger.warn("No permission checker set! Defaulting to false for permission: " + permission);
             return false;
         }
         return permissionChecker.apply(uuid, permission);

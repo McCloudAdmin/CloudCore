@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import systems.mythical.cloudcore.users.User;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,12 +21,12 @@ import java.util.logging.Logger;
 public class ChatLogManager {
     private static ChatLogManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
     private final Gson gson;
 
-    private ChatLogManager(DatabaseManager databaseManager, Logger logger) {
+    private ChatLogManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
         this.gson = new Gson();
     }
 
@@ -64,7 +66,7 @@ public class ChatLogManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to create chat log: " + e.getMessage());
+            cloudLogger.error("Failed to create chat log: " + e.getMessage());
         }
         return null;
     }
@@ -94,7 +96,7 @@ public class ChatLogManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to get last messages: " + e.getMessage());
+            cloudLogger.error("Failed to get last messages: " + e.getMessage());
         }
         return messages;
     }
@@ -123,7 +125,7 @@ public class ChatLogManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to get chat log: " + e.getMessage());
+            cloudLogger.error("Failed to get chat log: " + e.getMessage());
         }
         return Optional.empty();
     }
@@ -153,8 +155,8 @@ public class ChatLogManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to get chat logs for user: " + e.getMessage());
+            cloudLogger.error("Failed to get chat logs for user: " + e.getMessage());
         }
         return chatLogs;
     }
-} 
+}

@@ -8,16 +8,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Build worker project
-echo "Building worker project..."
-cd mccloudadmin-worker
-mvn clean package
-if [ $? -ne 0 ]; then
-    echo "Worker build failed!"
-    exit 1
-fi
-cd ..
-killall java
 
 # Clean up old files
 rm -f CloudCore.jar
@@ -38,7 +28,6 @@ echo "JARs are available at:"
 echo "- Velocity: ./tests/velo/plugins/CloudCore.jar"
 echo "- BungeeCord: ./tests/bungee/plugins/CloudCore.jar"
 echo "- Spigot: ./tests/spigot/plugins/CloudCore.jar"
-echo "- Worker: ./mccloudadmin-worker/target/mccloudadmin-worker-1.0-SNAPSHOT.jar"
 
 # Check if server JARs exist
 if [ ! -f "./tests/bungee/BungeeCord.jar" ]; then

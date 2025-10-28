@@ -15,9 +15,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class JoinEvent {
     private static final Logger logger = Logger.getLogger(JoinEvent.class.getName());
+    private static CloudLogger cloudLogger = CloudLoggerFactory.get();
     private static UserManager userManager;
     private static UserActivityManager activityManager;
     private static IPRelationshipManager ipManager;
@@ -36,13 +39,14 @@ public class JoinEvent {
         firewallManager = FirewallManager.getInstance(databaseManager, logger);
         messageManager = MessageManager.getInstance(databaseManager, logger);
         permissionChecker = PermissionChecker.getInstance();
+        cloudLogger = CloudLoggerFactory.get();
     }
 
     public static void onPlayerJoin(String username, UUID uuid, String ip, String userVersion, String clientName,
             String serverName, String group) {
         if (userManager == null || activityManager == null || ipManager == null ||
                 firewallManager == null || messageManager == null || permissionChecker == null) {
-            logger.severe("Managers not initialized! Call JoinEvent.initialize() first.");
+            cloudLogger.error("Managers not initialized! Call JoinEvent.initialize() first.");
             return;
         }
 
@@ -52,14 +56,14 @@ public class JoinEvent {
                 if (!permissionChecker.hasPermission(uuid, VPN_BYPASS_PERMISSION)) {
                     FirewallManager.FirewallCheckResult checkResult = firewallManager.checkConnection(username, ip);
                     if (!checkResult.isAllowed()) {
-                        logger.warning(
+                        cloudLogger.warn(
                                 "Connection blocked for " + username + " (" + uuid + "): " + checkResult.getReason());
                         // Execute kick directly through platform executor
                         KickExecutorFactory.getExecutor().executeKick(uuid, checkResult.getReason());
                         return;
                     }
                 } else {
-                    logger.info("Player " + username + " bypassed VPN check with permission: " + VPN_BYPASS_PERMISSION);
+                    cloudLogger.debug("Player " + username + " bypassed VPN check with permission: " + VPN_BYPASS_PERMISSION);
                 }
 
                 // First, try to find the user by username
@@ -74,11 +78,11 @@ public class JoinEvent {
                         if (user.getUuid() != null && !user.getUuid().equals(uuid)) {
                             String reason = "This username is already registered with a different UUID. If this is your account, please contact staff.";
                             KickExecutorFactory.getExecutor().executeKick(uuid, reason);
-                            logger.warning("Alt account detected for username " + username + ": Old UUID = " + user.getUuid() + ", New UUID = " + uuid);
+                            cloudLogger.warn("Alt account detected for username " + username + ": Old UUID = " + user.getUuid() + ", New UUID = " + uuid);
                             return;
                         }
                     } else {
-                        logger.info("Player " + username + " bypassed alt account check with permission: " + ALTS_BYPASS_PERMISSION);
+                        cloudLogger.debug("Player " + username + " bypassed alt account check with permission: " + ALTS_BYPASS_PERMISSION);
                     }
 
                     // Update UUID if it changed
@@ -108,7 +112,7 @@ public class JoinEvent {
                     // Track IP relationship
                     ipManager.addIPRelationship(uuid.toString(), ip);
 
-                    logger.info("Updated existing user: " + username + " (" + uuid + ")");
+                    cloudLogger.debug("Updated existing user: " + username + " (" + uuid + ")");
                 } else {
                     // User doesn't exist, create new user
                     User newUser = userManager.createUser(username, uuid, ip);
@@ -129,13 +133,13 @@ public class JoinEvent {
                         // Track IP relationship for new user
                         ipManager.addIPRelationship(uuid.toString(), ip);
 
-                        logger.info("Created new user: " + username + " (" + uuid + ")");
+                        cloudLogger.info("Created new user: " + username + " (" + uuid + ")");
                     } else {
-                        logger.severe("Failed to create new user: " + username + " (" + uuid + ")");
+                        cloudLogger.error("Failed to create new user: " + username + " (" + uuid + ")");
                     }
                 }
             } catch (Exception e) {
-                logger.severe("Error handling player join: " + e.getMessage());
+                cloudLogger.error("Error handling player join: " + e.getMessage());
             }
         });
     }

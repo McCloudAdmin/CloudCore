@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.maintenance;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.*;
 import java.util.UUID;
@@ -9,11 +11,11 @@ import java.util.logging.Logger;
 public class MaintenanceSystemManager {
     private static MaintenanceSystemManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private MaintenanceSystemManager(DatabaseManager databaseManager, Logger logger) {
+    private MaintenanceSystemManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static MaintenanceSystemManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -33,7 +35,7 @@ public class MaintenanceSystemManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error checking maintenance status for " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error checking maintenance status for " + uuid + ": " + e.getMessage());
             return false;
         }
     }
@@ -41,7 +43,7 @@ public class MaintenanceSystemManager {
     public boolean addMaintenance(UUID uuid) {
         // First check if the UUID already exists
         if (isInMaintenance(uuid)) {
-            logger.info("UUID " + uuid + " is already in maintenance list, skipping...");
+            cloudLogger.debug("UUID " + uuid + " is already in maintenance list, skipping...");
             return false;
         }
 
@@ -50,11 +52,11 @@ public class MaintenanceSystemManager {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 stmt.executeUpdate();
-                logger.info("Added maintenance entry for: " + uuid);
+                cloudLogger.info("Added maintenance entry for: " + uuid);
                 return true;
             }
         } catch (SQLException e) {
-            logger.severe("Error adding maintenance entry for " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error adding maintenance entry for " + uuid + ": " + e.getMessage());
             return false;
         }
     }
@@ -65,11 +67,11 @@ public class MaintenanceSystemManager {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 stmt.executeUpdate();
-                logger.info("Removed maintenance entry for: " + uuid);
+                cloudLogger.info("Removed maintenance entry for: " + uuid);
                 return true;
             }
         } catch (SQLException e) {
-            logger.severe("Error removing maintenance entry for " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error removing maintenance entry for " + uuid + ": " + e.getMessage());
             return false;
         }
     }
@@ -91,8 +93,8 @@ public class MaintenanceSystemManager {
                 return list.toString();
             }
         } catch (SQLException e) {
-            logger.severe("Error getting maintenance list: " + e.getMessage());
+            cloudLogger.error("Error getting maintenance list: " + e.getMessage());
             return "";
         }
     }
-} 
+}

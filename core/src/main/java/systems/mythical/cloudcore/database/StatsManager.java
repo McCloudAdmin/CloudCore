@@ -1,5 +1,8 @@
 package systems.mythical.cloudcore.database;
 
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,11 +11,11 @@ import java.util.logging.Logger;
 
 public class StatsManager {
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    public StatsManager(DatabaseManager databaseManager, Logger logger) {
+    public StatsManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public boolean createStat(String user, String worker, String type, String value) {
@@ -26,7 +29,7 @@ public class StatsManager {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            logger.severe("Failed to create stat: " + e.getMessage());
+            cloudLogger.error("Failed to create stat: " + e.getMessage());
             return false;
         }
     }
@@ -44,7 +47,7 @@ public class StatsManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to get stat: " + e.getMessage());
+            cloudLogger.error("Failed to get stat: " + e.getMessage());
         }
         return Optional.empty();
     }
@@ -59,7 +62,7 @@ public class StatsManager {
             stmt.setString(4, type);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            logger.severe("Failed to update stat: " + e.getMessage());
+            cloudLogger.error("Failed to update stat: " + e.getMessage());
             return false;
         }
     }
@@ -73,7 +76,7 @@ public class StatsManager {
             stmt.setString(3, type);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            logger.severe("Failed to delete stat: " + e.getMessage());
+            cloudLogger.error("Failed to delete stat: " + e.getMessage());
             return false;
         }
     }
@@ -90,7 +93,7 @@ public class StatsManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to list stats by user: " + e.getMessage());
+            cloudLogger.error("Failed to list stats by user: " + e.getMessage());
         }
         return stats;
     }
@@ -107,7 +110,7 @@ public class StatsManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to list stats by worker: " + e.getMessage());
+            cloudLogger.error("Failed to list stats by worker: " + e.getMessage());
         }
         return stats;
     }
@@ -124,7 +127,7 @@ public class StatsManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to list stats by type: " + e.getMessage());
+            cloudLogger.error("Failed to list stats by type: " + e.getMessage());
         }
         return stats;
     }
@@ -141,7 +144,7 @@ public class StatsManager {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            logger.severe("Failed to set or update stat: " + e.getMessage());
+            cloudLogger.error("Failed to set or update stat: " + e.getMessage());
             return false;
         }
     }
@@ -157,7 +160,7 @@ public class StatsManager {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            logger.severe("Failed to increment or create stat: " + e.getMessage());
+            cloudLogger.error("Failed to increment or create stat: " + e.getMessage());
             return false;
         }
     }
@@ -174,7 +177,7 @@ public class StatsManager {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            logger.severe("Failed to increment stat by amount: " + e.getMessage());
+            cloudLogger.error("Failed to increment stat by amount: " + e.getMessage());
             return false;
         }
     }
@@ -191,8 +194,8 @@ public class StatsManager {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            logger.severe("Failed to set stat: " + e.getMessage());
+            cloudLogger.error("Failed to set stat: " + e.getMessage());
             return false;
         }
     }
-} 
+}

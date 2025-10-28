@@ -9,14 +9,15 @@ import org.bukkit.plugin.Plugin;
 import systems.mythical.cloudcore.spigot.hooks.JobsHandler;
 import systems.mythical.cloudcore.spigot.hooks.EssentialsXHandler;
 import systems.mythical.cloudcore.spigot.hooks.BedwarsHandler;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class UnifiedStatsTracker {
     private final Plugin plugin;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
     private final StatsBufferManager statsBuffer;
     private final String workerName;
     private int taskId = -1;
@@ -40,7 +41,7 @@ public class UnifiedStatsTracker {
                               Essentials essentials,
                               ASkyBlockAPI skyBlockAPI) {
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
+        this.cloudLogger = CloudLoggerFactory.get();
         this.statsBuffer = statsBuffer;
         this.workerName = workerName;
         this.jobsHandler = jobsHandler;
@@ -55,7 +56,7 @@ public class UnifiedStatsTracker {
 
         // Run every 50 seconds (1000 ticks)
         taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::updateAllStats, 100L, 1000L).getTaskId();
-        logger.info("UnifiedStatsTracker started with 50-second update interval");
+        cloudLogger.info("UnifiedStatsTracker started with 50-second update interval");
     }
 
     public void stop() {
@@ -73,25 +74,25 @@ public class UnifiedStatsTracker {
             try {
                 updateJobsStats(player, uuid);
             } catch (Exception e) {
-                logger.warning("Failed to update Jobs stats for " + player.getName() + ": " + e.getMessage());
+                cloudLogger.warn("Failed to update Jobs stats for " + player.getName() + ": " + e.getMessage());
             }
 
             try {
                 updateEssentialsStats(player, uuid);
             } catch (Exception e) {
-                logger.warning("Failed to update Essentials stats for " + player.getName() + ": " + e.getMessage());
+                cloudLogger.warn("Failed to update Essentials stats for " + player.getName() + ": " + e.getMessage());
             }
 
             try {
                 updateBedwarsStats(player, uuid);
             } catch (Exception e) {
-                logger.warning("Failed to update BedWars stats for " + player.getName() + ": " + e.getMessage());
+                cloudLogger.warn("Failed to update BedWars stats for " + player.getName() + ": " + e.getMessage());
             }
 
             try {
                 updateSkyBlockStats(player, uuid);
             } catch (Exception e) {
-                logger.warning("Failed to update SkyBlock stats for " + player.getName() + ": " + e.getMessage());
+                cloudLogger.warn("Failed to update SkyBlock stats for " + player.getName() + ": " + e.getMessage());
             }
         }
     }
@@ -155,4 +156,4 @@ public class UnifiedStatsTracker {
             statsBuffer.setStat(uuid, workerName, "askyblock.island_level", (double) skyBlockAPI.getLongIslandLevel(player.getUniqueId()));
         }
     }
-} 
+}

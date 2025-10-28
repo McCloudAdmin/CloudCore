@@ -13,11 +13,11 @@ import java.util.function.Consumer;
 import javax.net.ssl.HttpsURLConnection;
 
 public class DownloadManager {
-    private final Logger logger;
     private final ExecutorService executorService;
     private final int maxRetries;
     private final int bufferSize;
     private final int timeout;
+    private final CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     public static class DownloadProgress {
         private final long totalBytes;
@@ -49,7 +49,6 @@ public class DownloadManager {
     }
 
     public DownloadManager(Logger logger, int maxRetries, int bufferSize, int timeout) {
-        this.logger = logger;
         this.maxRetries = maxRetries;
         this.bufferSize = bufferSize;
         this.timeout = timeout;
@@ -116,10 +115,10 @@ public class DownloadManager {
             } catch (IOException | NoSuchAlgorithmException e) {
                 retryCount++;
                 if (retryCount >= maxRetries) {
-                    logger.severe("Failed to download file after " + maxRetries + " attempts: " + e.getMessage());
+                    cloudLogger.error("Failed to download file after " + maxRetries + " attempts: " + e.getMessage());
                     throw new IOException("Download failed after " + maxRetries + " attempts", e);
                 }
-                logger.warning("Download attempt " + retryCount + " failed, retrying in 5 seconds...");
+                cloudLogger.warn("Download attempt " + retryCount + " failed, retrying in 5 seconds...");
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException ie) {

@@ -33,7 +33,6 @@ import systems.mythical.cloudcore.velocity.commands.AlertCommand;
 import systems.mythical.cloudcore.velocity.commands.ReportCommand;
 import systems.mythical.cloudcore.velocity.commands.CloudCoreCommand;
 import systems.mythical.cloudcore.velocity.commands.PanelCommand;
-import systems.mythical.cloudcore.velocity.commands.PerformJoinCommand;
 import systems.mythical.cloudcore.velocity.commands.ProfileCommand;
 import systems.mythical.cloudcore.velocity.commands.InfoCommand;
 import systems.mythical.cloudcore.velocity.commands.ChatlogCommand;
@@ -43,7 +42,7 @@ import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.utils.DependencyManager;
 import systems.mythical.cloudcore.velocity.tasks.ConsoleTaskScheduler;
 import systems.mythical.cloudcore.velocity.commands.Social;
-import systems.mythical.cloudcore.velocity.commands.JoinMeCommand;
+ 
 
 /**
  * Velocity Imports
@@ -71,6 +70,9 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import systems.mythical.cloudcore.velocity.events.LuckPermsListener;
 import systems.mythical.cloudcore.velocity.worker.WorkerManager;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.DefaultCloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 @Plugin(id = "cloudcore", name = "CloudCore", version = "1.0-SNAPSHOT", description = "The plugin to run McCloudAdminPanel", authors = {
         "MythicalSystems" }, dependencies = {
@@ -84,6 +86,7 @@ public class CloudCoreVelocity {
     private CloudCore cloudCore;
     private DatabaseManager databaseManager;
     private ConsoleTaskScheduler consoleTaskScheduler;
+    private CloudLogger cloudLogger;
 
     @SuppressWarnings("unused")
     private boolean litebansEnabled = false;
@@ -95,15 +98,17 @@ public class CloudCoreVelocity {
         this.dataFolder = dataFolder;
     }
 
-    @SuppressWarnings("deprecation")
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        logger.info("[CloudCore] onProxyInitialization called.");
-        logger.info("CloudCore has been initialized!");
-        logger.info("Forcing plugin to run in production mode.");
+        cloudLogger = new DefaultCloudLogger(logger);
+        cloudLogger.setDebugSupplier(() -> cloudCore != null && cloudCore.getConfig().isDebugMode());
+        CloudLoggerFactory.init(cloudLogger);
+        cloudLogger.info("[CloudCore] onProxyInitialization called.");
+        cloudLogger.info("CloudCore has been initialized!");
+        cloudLogger.info("Forcing plugin to run in production mode.");
 
         if (!server.getPluginManager().getPlugin("luckperms").isPresent()) {
-            logger.info("Checking and downloading required dependencies...");
+            cloudLogger.info("Checking and downloading required dependencies...");
             try {
                 DependencyManager dependencyManager = new DependencyManager(
                         logger,
@@ -113,22 +118,22 @@ public class CloudCoreVelocity {
                 dependencyManager.checkAndDownloadDependencies()
                         .thenAccept(success -> {
                             if (!success) {
-                                logger.severe("Failed to download required dependencies");
+                                cloudLogger.error("Failed to download required dependencies");
                                 server.shutdown();
                             } else {
-                                logger.info("Successfully downloaded all required dependencies");
+                                cloudLogger.info("Successfully downloaded all required dependencies");
                                 server.shutdown(); // Restart to load new plugins
                             }
                         })
                         .exceptionally(ex -> {
-                            logger.severe("Error managing dependencies: " + ex.getMessage());
+                            cloudLogger.error("Error managing dependencies: " + ex.getMessage());
                             ex.printStackTrace();
                             server.shutdown();
                             return null;
                         });
                 return;
             } catch (Exception e) {
-                logger.severe("Failed to initialize dependency manager: " + e.getMessage());
+                cloudLogger.error("Failed to initialize dependency manager: " + e.getMessage());
                 e.printStackTrace();
                 server.shutdown();
                 return;
@@ -137,11 +142,11 @@ public class CloudCoreVelocity {
 
         if (!server.getPluginManager().getPlugin("litebans").isPresent()) {
             litebansEnabled = false;
-            logger.info("LiteBans is not installed, LiteBans support is disabled.");
+            cloudLogger.info("LiteBans is not installed, LiteBans support is disabled.");
         } else {
             litebansEnabled = true;
-            logger.info("LiteBans is installed, LiteBans support is enabled.");
-            logger.info("CloudCore will process bans from LiteBans to panel.");
+            cloudLogger.info("LiteBans is installed, LiteBans support is enabled.");
+            cloudLogger.info("CloudCore will process bans from LiteBans to panel.");
             LiteBans liteBans = new LiteBans(this);
             liteBans.registerEvents();
         }
@@ -155,16 +160,16 @@ public class CloudCoreVelocity {
         });
 
         try {
-            logger.info("[CloudCore] Initializing CloudCore...");
+            cloudLogger.info("[CloudCore] Initializing CloudCore...");
             cloudCore = new CloudCore(dataFolder.toFile(), logger, false);
 
-            logger.info("[CloudCore] Initializing database...");
+            cloudLogger.info("[CloudCore] Initializing database...");
             databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
 
             // Initialize system user
             SystemUserManager systemUserManager = SystemUserManager.getInstance(databaseManager, logger);
             systemUserManager.createSystemUserIfNotExists();
-            logger.info("[CloudCore] System user initialized successfully!");
+            cloudLogger.info("[CloudCore] System user initialized successfully!");
 
             // Initialize settings
             CloudSettings cloudSettings = CloudSettings.getInstance(databaseManager, logger);
@@ -176,24 +181,24 @@ public class CloudCoreVelocity {
                     false);
 
             JoinEvent.initialize(databaseManager);
-            logger.info("[CloudCore] Join events initialized");
+            cloudLogger.info("[CloudCore] Join events initialized");
 
             ServerSwitchEvent.initialize(databaseManager);
-            logger.info("[CloudCore] Server switch events initialized");
+            cloudLogger.info("[CloudCore] Server switch events initialized");
 
             QuitEvent.initialize(databaseManager);
-            logger.info("[CloudCore] Quit events initialized");
+            cloudLogger.info("[CloudCore] Quit events initialized");
 
             if (settingsManager.getValue(logChatEvents)) {
                 ChatEvent.initialize(databaseManager);
-                logger.info("[CloudCore] Chat events initialized");
+                cloudLogger.info("[CloudCore] Chat events initialized");
             }
 
             if (settingsManager.getValue(logCommandEvents)) {
                 CommandEvent.initialize(databaseManager);
-                logger.info("[CloudCore] Command events initialized");
-                ConsoleCommand.initialize(databaseManager);
-                logger.info("[CloudCore] Console commands initialized");
+                cloudLogger.info("[CloudCore] Command events initialized");
+                ConsoleCommand.initialize(databaseManager, logger);
+                cloudLogger.info("[CloudCore] Console commands initialized");
             }
 
             MaintenanceSystemCommand.initialize(databaseManager, logger);
@@ -204,18 +209,18 @@ public class CloudCoreVelocity {
             server.getEventManager().register(this, new OnQuit());
 
             if (settingsManager.getValue(logChatEvents)) {
-                server.getEventManager().register(this, new OnChat());
+                server.getEventManager().register(this, new OnChat(cloudLogger));
             }
             if (settingsManager.getValue(logCommandEvents)) {
-                server.getEventManager().register(this, new OnCommand());
+                server.getEventManager().register(this, new OnCommand(cloudLogger));
             }
 
             // Initialize LuckPerms listener
             LuckPerms luckPerms = LuckPermsProvider.get();
             new LuckPermsListener(luckPerms, databaseManager, logger);
-            logger.info("[CloudCore] LuckPerms listener initialized");
+            cloudLogger.info("[CloudCore] LuckPerms listener initialized");
 
-            logger.info("[CloudCore] Initializing commands...");
+            cloudLogger.info("[CloudCore] Initializing commands...");
             initializeCommands(cloudSettings, settingsManager);
 
             // Initialize console task scheduler
@@ -225,11 +230,11 @@ public class CloudCoreVelocity {
             // Initialize worker
             WorkerManager worker = new WorkerManager(cloudCore.getConfig(), databaseManager, logger);
             worker.initialize();
-            logger.info("[CloudCore] Worker initialized successfully!");
+            cloudLogger.info("[CloudCore] Worker initialized successfully!");
 
-            logger.info("[CloudCore] CloudCore Velocity plugin has been enabled!");
+            cloudLogger.info("[CloudCore] CloudCore Velocity plugin has been enabled!");
         } catch (Exception e) {
-            logger.severe("[CloudCore] Failed to initialize CloudCore: " + e.getMessage());
+            cloudLogger.error("[CloudCore] Failed to initialize CloudCore: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -250,7 +255,7 @@ public class CloudCoreVelocity {
             consoleTaskScheduler.stop();
         }
 
-        logger.info("CloudCore Velocity plugin has been disabled!");
+        cloudLogger.info("CloudCore Velocity plugin has been disabled!");
     }
 
     @Subscribe
@@ -267,7 +272,7 @@ public class CloudCoreVelocity {
     }
 
     public void initializeCommands(CloudSettings cloudSettings, SettingsManager settingsManager) {
-        logger.info("[CloudCore] Registering commands...");
+        cloudLogger.info("[CloudCore] Registering commands...");
         CommandManager commandManager = server.getCommandManager();
 
         // Register CloudCore command
@@ -278,9 +283,9 @@ public class CloudCoreVelocity {
                     .plugin(this)
                     .build();
             commandManager.register(mainMeta, cloudCore);
-            logger.info("[CloudCore] /cloudcore command registered successfully.");
+            cloudLogger.info("[CloudCore] /cloudcore command registered successfully.");
         } catch (Exception e) {
-            logger.severe("[CloudCore] Failed to register /cloudcore: " + e.getMessage());
+            cloudLogger.error("[CloudCore] Failed to register /cloudcore: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -291,9 +296,9 @@ public class CloudCoreVelocity {
                     .plugin(this)
                     .build();
             commandManager.register(panelMeta, panel);
-            logger.info("[CloudCore] /panel command registered successfully.");
+            cloudLogger.info("[CloudCore] /panel command registered successfully.");
         } catch (Exception e) {
-            logger.severe("[CloudCore] Failed to register /panel: " + e.getMessage());
+            cloudLogger.error("[CloudCore] Failed to register /panel: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -304,9 +309,9 @@ public class CloudCoreVelocity {
                     .plugin(this)
                     .build();
             commandManager.register(infoMeta, info);
-            logger.info("[CloudCore] /info command registered successfully.");
+            cloudLogger.info("[CloudCore] /info command registered successfully.");
         } catch (Exception e) {
-            logger.severe("[CloudCore] Failed to register /info: " + e.getMessage());
+            cloudLogger.error("[CloudCore] Failed to register /info: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -317,38 +322,14 @@ public class CloudCoreVelocity {
                         .plugin(this)
                         .build();
                 commandManager.register(alertMeta, alert);
-                logger.info("[CloudCore] /alert command registered successfully.");
+                cloudLogger.info("[CloudCore] /alert command registered successfully.");
             } catch (Exception e) {
-                logger.severe("[CloudCore] Failed to register /alert: " + e.getMessage());
+                cloudLogger.error("[CloudCore] Failed to register /alert: " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
-        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.JOINME_ENABLED, false))) {
-            try {
-                // Create the JoinMe command instance
-                JoinMeCommand joinMeCommand = new JoinMeCommand(this, dataFolder);
-
-                // Register the main joinme command
-                CommandMeta joinMeMeta = commandManager.metaBuilder("joinme")
-                        .plugin(this)
-                        .build();
-                commandManager.register(joinMeMeta, joinMeCommand);
-
-                // Register the performjoin command
-                PerformJoinCommand performJoinCommand = new PerformJoinCommand(this);
-                CommandMeta performJoinMeta = commandManager.metaBuilder("performjoin")
-                        .plugin(this)
-                        .aliases("pj") // Optional alias
-                        .build();
-                commandManager.register(performJoinMeta, performJoinCommand);
-
-                logger.info("[CloudCore] /joinme and /performjoin commands registered successfully.");
-            } catch (Exception e) {
-                logger.severe("[CloudCore] Failed to register JoinMe commands: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
+        
 
         if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.REPORT_SYSTEM_ENABLED, false))) {
             try {
@@ -357,9 +338,9 @@ public class CloudCoreVelocity {
                         .plugin(this)
                         .build();
                 commandManager.register(reportMeta, report);
-                logger.info("[CloudCore] /report command registered successfully.");
+                cloudLogger.info("[CloudCore] /report command registered successfully.");
             } catch (Exception e) {
-                logger.severe("[CloudCore] Failed to register /report: " + e.getMessage());
+                cloudLogger.error("[CloudCore] Failed to register /report: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -372,22 +353,30 @@ public class CloudCoreVelocity {
                         .plugin(this)
                         .build();
                 commandManager.register(proxyConsoleMeta, proxyConsole);
-                logger.info("[CloudCore] /proxyconsole command registered successfully.");
+                cloudLogger.info("[CloudCore] /proxyconsole command registered successfully.");
             } catch (Exception e) {
-                logger.severe("[CloudCore] Failed to register /proxyconsole: " + e.getMessage());
+                cloudLogger.error("[CloudCore] Failed to register /proxyconsole: " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
-        // Register commands
-        commandManager.register("info", new InfoCommand(this));
+        // Register commands (avoid deprecated register(String, Command,...))
+        {
+            CommandMeta infoMeta = commandManager.metaBuilder("info").plugin(this).build();
+            commandManager.register(infoMeta, new InfoCommand(this));
+        }
         if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.GLOBAL_APP_PROFILE_ENABLED, false))) {
-            commandManager.register("profile", new ProfileCommand(this));
+            CommandMeta profileMeta = commandManager.metaBuilder("profile").plugin(this).build();
+            commandManager.register(profileMeta, new ProfileCommand(this));
         }
         if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.LOG_CHAT, false))) {
-            commandManager.register("chatlog", new ChatlogCommand(this));
+            CommandMeta chatlogMeta = commandManager.metaBuilder("chatlog").plugin(this).build();
+            commandManager.register(chatlogMeta, new ChatlogCommand(this));
         }
-        commandManager.register("panel", new PanelCommand(this));
+        {
+            CommandMeta panelMeta = commandManager.metaBuilder("panel").plugin(this).build();
+            commandManager.register(panelMeta, new PanelCommand(this));
+        }
 
         createSocialMediaLinksCommands(commandManager, cloudSettings);
     }
@@ -395,72 +384,86 @@ public class CloudCoreVelocity {
     private void createSocialMediaLinksCommands(CommandManager commandManager, CloudSettings cloudSettings) {
         String discordUrl = cloudSettings.getSetting(Settings.GLOBAL_DISCORD_INVITE_URL);
         if (!discordUrl.isEmpty()) {
-            commandManager.register("discord", new Social("Discord", discordUrl, this));
+            CommandMeta discordMeta = commandManager.metaBuilder("discord").plugin(this).build();
+            commandManager.register(discordMeta, new Social("Discord", discordUrl, this));
         }
 
         String websiteUrl = cloudSettings.getSetting(Settings.GLOBAL_WEBSITE_URL);
         if (!websiteUrl.isEmpty()) {
-            commandManager.register("website", new Social("Website", websiteUrl, this));
+            CommandMeta websiteMeta = commandManager.metaBuilder("website").plugin(this).build();
+            commandManager.register(websiteMeta, new Social("Website", websiteUrl, this));
         }
 
         String storeUrl = cloudSettings.getSetting(Settings.GLOBAL_STORE_URL);
         if (!storeUrl.isEmpty()) {
-            commandManager.register("store", new Social("Store", storeUrl, this));
+            CommandMeta storeMeta = commandManager.metaBuilder("store").plugin(this).build();
+            commandManager.register(storeMeta, new Social("Store", storeUrl, this));
         }
 
         String twitterUrl = cloudSettings.getSetting(Settings.GLOBAL_TWITTER_URL);
         if (!twitterUrl.isEmpty()) {
-            commandManager.register("twitter", new Social("Twitter", twitterUrl, this));
+            CommandMeta twitterMeta = commandManager.metaBuilder("twitter").plugin(this).build();
+            commandManager.register(twitterMeta, new Social("Twitter", twitterUrl, this));
         }
 
         String githubUrl = cloudSettings.getSetting(Settings.GLOBAL_GITHUB_URL);
         if (!githubUrl.isEmpty()) {
-            commandManager.register("github", new Social("GitHub", githubUrl, this));
+            CommandMeta githubMeta = commandManager.metaBuilder("github").plugin(this).build();
+            commandManager.register(githubMeta, new Social("GitHub", githubUrl, this));
         }
 
         String linkedinUrl = cloudSettings.getSetting(Settings.GLOBAL_LINKEDIN_URL);
         if (!linkedinUrl.isEmpty()) {
-            commandManager.register("linkedin", new Social("LinkedIn", linkedinUrl, this));
+            CommandMeta linkedinMeta = commandManager.metaBuilder("linkedin").plugin(this).build();
+            commandManager.register(linkedinMeta, new Social("LinkedIn", linkedinUrl, this));
         }
 
         String instagramUrl = cloudSettings.getSetting(Settings.GLOBAL_INSTAGRAM_URL);
         if (!instagramUrl.isEmpty()) {
-            commandManager.register("instagram", new Social("Instagram", instagramUrl, this));
+            CommandMeta instagramMeta = commandManager.metaBuilder("instagram").plugin(this).build();
+            commandManager.register(instagramMeta, new Social("Instagram", instagramUrl, this));
         }
 
         String youtubeUrl = cloudSettings.getSetting(Settings.GLOBAL_YOUTUBE_URL);
         if (!youtubeUrl.isEmpty()) {
-            commandManager.register("youtube", new Social("YouTube", youtubeUrl, this));
+            CommandMeta youtubeMeta = commandManager.metaBuilder("youtube").plugin(this).build();
+            commandManager.register(youtubeMeta, new Social("YouTube", youtubeUrl, this));
         }
 
         String tiktokUrl = cloudSettings.getSetting(Settings.GLOBAL_TIKTOK_URL);
         if (!tiktokUrl.isEmpty()) {
-            commandManager.register("tiktok", new Social("TikTok", tiktokUrl, this));
+            CommandMeta tiktokMeta = commandManager.metaBuilder("tiktok").plugin(this).build();
+            commandManager.register(tiktokMeta, new Social("TikTok", tiktokUrl, this));
         }
 
         String facebookUrl = cloudSettings.getSetting(Settings.GLOBAL_FACEBOOK_URL);
         if (!facebookUrl.isEmpty()) {
-            commandManager.register("facebook", new Social("Facebook", facebookUrl, this));
+            CommandMeta facebookMeta = commandManager.metaBuilder("facebook").plugin(this).build();
+            commandManager.register(facebookMeta, new Social("Facebook", facebookUrl, this));
         }
 
         String redditUrl = cloudSettings.getSetting(Settings.GLOBAL_REDDIT_URL);
         if (!redditUrl.isEmpty()) {
-            commandManager.register("reddit", new Social("Reddit", redditUrl, this));
+            CommandMeta redditMeta = commandManager.metaBuilder("reddit").plugin(this).build();
+            commandManager.register(redditMeta, new Social("Reddit", redditUrl, this));
         }
 
         String telegramUrl = cloudSettings.getSetting(Settings.GLOBAL_TELEGRAM_URL);
         if (!telegramUrl.isEmpty()) {
-            commandManager.register("telegram", new Social("Telegram", telegramUrl, this));
+            CommandMeta telegramMeta = commandManager.metaBuilder("telegram").plugin(this).build();
+            commandManager.register(telegramMeta, new Social("Telegram", telegramUrl, this));
         }
 
         String whatsappUrl = cloudSettings.getSetting(Settings.GLOBAL_WHATSAPP_URL);
         if (!whatsappUrl.isEmpty()) {
-            commandManager.register("whatsapp", new Social("WhatsApp", whatsappUrl, this));
+            CommandMeta whatsappMeta = commandManager.metaBuilder("whatsapp").plugin(this).build();
+            commandManager.register(whatsappMeta, new Social("WhatsApp", whatsappUrl, this));
         }
 
         String statusUrl = cloudSettings.getSetting(Settings.GLOBAL_STATUS_PAGE_URL);
         if (!statusUrl.isEmpty()) {
-            commandManager.register("status", new Social("Status", statusUrl, this));
+            CommandMeta statusMeta = commandManager.metaBuilder("status").plugin(this).build();
+            commandManager.register(statusMeta, new Social("Status", statusUrl, this));
         }
     }
 

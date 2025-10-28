@@ -55,6 +55,7 @@ public class ImageUtils {
     };
 
     public static BufferedImage fetchHead(UUID uuid, String name, File cacheDir, Logger logger) {
+        CloudLogger cloudLogger = CloudLoggerFactory.get();
         // Check memory cache first
         if (headCache.containsKey(uuid)) {
             return headCache.get(uuid);
@@ -70,7 +71,7 @@ public class ImageUtils {
                     return img;
                 }
             } catch (IOException ex) {
-                logger.warning("Failed to read cached head for " + name + ": " + ex.getMessage());
+                cloudLogger.warn("Failed to read cached head for " + name + ": " + ex.getMessage());
             }
         }
 
@@ -92,12 +93,12 @@ public class ImageUtils {
                 try {
                     ImageIO.write(img, "PNG", cacheFile);
                 } catch (IOException ex) {
-                    logger.warning("Failed to cache head for " + name + ": " + ex.getMessage());
+                    cloudLogger.warn("Failed to cache head for " + name + ": " + ex.getMessage());
                 }
                 return img;
             }
         } catch (Exception ex) {
-            logger.warning("Head of player " + name + " could not be parsed! " + ex.getMessage());
+            cloudLogger.warn("Head of player " + name + " could not be parsed! " + ex.getMessage());
         }
         return null;
     }

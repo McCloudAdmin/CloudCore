@@ -3,16 +3,17 @@ package systems.mythical.cloudcore.settings;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class SettingsManager {
     private static SettingsManager instance;
     private final CloudSettings cloudSettings;
     private final Map<String, Setting<?>> registeredSettings;
-    private final Logger logger;
+    private final CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     private SettingsManager(CloudSettings cloudSettings, Logger logger) {
         this.cloudSettings = cloudSettings;
-        this.logger = logger;
         this.registeredSettings = new HashMap<>();
     }
 
@@ -35,7 +36,7 @@ public class SettingsManager {
         try {
             return setting.parseValue(rawValue);
         } catch (Exception e) {
-            logger.warning("Error parsing setting " + setting.getName() + ": " + e.getMessage());
+            cloudLogger.warn("Error parsing setting " + setting.getName() + ": " + e.getMessage());
             return setting.getDefaultValue();
         }
     }

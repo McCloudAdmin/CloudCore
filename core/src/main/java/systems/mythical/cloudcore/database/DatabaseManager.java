@@ -3,6 +3,8 @@ package systems.mythical.cloudcore.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import systems.mythical.cloudcore.config.CloudCoreConfig;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -10,10 +12,10 @@ import java.util.logging.Logger;
 
 public class DatabaseManager {
     private final HikariDataSource dataSource;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    public DatabaseManager(CloudCoreConfig config, Logger logger) {
-        this.logger = logger;
+    public DatabaseManager(CloudCoreConfig config, Logger platformLogger) {
+        this.cloudLogger = CloudLoggerFactory.get();
         
         // Explicitly load MySQL driver
         try {
@@ -47,7 +49,7 @@ public class DatabaseManager {
                     throw new SQLException("Initial connection test failed - connection is not valid");
                 }
             }
-            logger.info("Database connection pool initialized successfully!");
+            cloudLogger.info("Database connection pool initialized successfully!");
         } catch (SQLException e) {
             String errorMessage = String.format(
                 "CRITICAL ERROR: Failed to initialize database connection!\n" +
@@ -66,9 +68,9 @@ public class DatabaseManager {
             
             // Log the error multiple times to ensure visibility
             for (int i = 0; i < 5; i++) {
-                logger.severe("================================================");
-                logger.severe(errorMessage);
-                logger.severe("================================================");
+                cloudLogger.error("================================================");
+                cloudLogger.error(errorMessage);
+                cloudLogger.error("================================================");
             }
             
             // Throw a runtime exception to prevent the server from starting
@@ -81,17 +83,17 @@ public class DatabaseManager {
             Connection conn = dataSource.getConnection();
             if (!conn.isValid(5)) {
                 String error = "Database connection is not valid!";
-                logger.severe("================================================");
-                logger.severe(error);
-                logger.severe("================================================");
+                cloudLogger.error("================================================");
+                cloudLogger.error(error);
+                cloudLogger.error("================================================");
                 throw new SQLException(error);
             }
             return conn;
         } catch (SQLException e) {
             String error = "Failed to get database connection: " + e.getMessage();
-            logger.severe("================================================");
-            logger.severe(error);
-            logger.severe("================================================");
+            cloudLogger.error("================================================");
+            cloudLogger.error(error);
+            cloudLogger.error("================================================");
             throw e;
         }
     }
@@ -100,10 +102,10 @@ public class DatabaseManager {
         if (dataSource != null && !dataSource.isClosed()) {
             try {
                 dataSource.close();
-                logger.info("Database connection pool closed successfully!");
+                cloudLogger.info("Database connection pool closed successfully!");
             } catch (Exception e) {
-                logger.severe("Error closing database connection pool: " + e.getMessage());
+                cloudLogger.error("Error closing database connection pool: " + e.getMessage());
             }
         }
     }
-} 
+}

@@ -10,12 +10,15 @@ import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.Set;
 import java.util.HashSet;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class CommandEvent {
     private static final Logger logger = Logger.getLogger(CommandEvent.class.getName());
     private static CommandLogManager commandLogManager;
     private static PermissionChecker permissionChecker;
     private static CloudSettings cloudSettings;
+    private static CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     // Permission nodes
     public static final String COMMAND_BYPASS_PERMISSION = "cloudcore.command.bypass";
@@ -33,6 +36,7 @@ public class CommandEvent {
         commandLogManager = CommandLogManager.getInstance(databaseManager, logger);
         permissionChecker = PermissionChecker.getInstance();
         cloudSettings = CloudSettings.getInstance(databaseManager, logger);
+        cloudLogger = CloudLoggerFactory.get();
     }
 
     /**
@@ -45,7 +49,7 @@ public class CommandEvent {
      */
     public static boolean onPlayerCommand(UUID uuid, String content, String server) {
         if (commandLogManager == null || permissionChecker == null || cloudSettings == null) {
-            logger.severe("Managers not initialized! Call CommandEvent.initialize() first.");
+            cloudLogger.error("Managers not initialized! Call CommandEvent.initialize() first.");
             return true; // Allow the command if not initialized
         }
 
@@ -60,7 +64,7 @@ public class CommandEvent {
 
             // Skip logging for sensitive commands
             if (SENSITIVE_COMMANDS.contains(commandName)) {
-                logger.info("Skipped logging sensitive command: " + commandName);
+                cloudLogger.debug("Skipped logging sensitive command: " + commandName);
                 return true; // Allow command but don't log it
             }
 
@@ -69,7 +73,7 @@ public class CommandEvent {
             
             return true;
         } catch (Exception e) {
-            logger.severe("Error handling command: " + e.getMessage());
+            cloudLogger.error("Error handling command: " + e.getMessage());
             return true; // Allow the command if there's an error
         }
     }

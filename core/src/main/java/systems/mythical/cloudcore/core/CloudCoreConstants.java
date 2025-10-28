@@ -100,13 +100,7 @@ public final class CloudCoreConstants {
         /** Allows accessing chat logs */
         public static final String CHATLOG_COMMAND = "cloudcore.chatlog.command";
 
-        // JoinMe Use Permissions
-        /** Allows using the JoinMe feature */
-        public static final String JOINME_USE = "cloudcore.joinme.use";
-
-        // JoinMe Bypass Cooldown Permissions
-        /** Allows bypassing JoinMe cooldown */
-        public static final String JOINME_USE_BYPASS_COOLDOWN = "cloudcore.joinme.use.bypass_cooldown";
+        
 
         // Panel Admin Permissions
         /** Full administrative access to the web panel */
@@ -549,10 +543,7 @@ public final class CloudCoreConstants {
                     new PermissionInfo(SETTINGS_MANAGE, "Settings Manage", "Allows managing system settings"));
             permissions.put(CHATLOG_COMMAND,
                     new PermissionInfo(CHATLOG_COMMAND, "Chatlog Command", "Allows accessing chat logs"));
-            permissions.put(JOINME_USE,
-                    new PermissionInfo(JOINME_USE, "JoinMe Use", "Allows using the JoinMe feature"));
-            permissions.put(JOINME_USE_BYPASS_COOLDOWN, new PermissionInfo(JOINME_USE_BYPASS_COOLDOWN,
-                    "JoinMe Bypass Cooldown", "Allows bypassing JoinMe cooldown"));
+            
             permissions.put(PANEL_ADMIN,
                     new PermissionInfo(PANEL_ADMIN, "Panel Admin", "Full administrative access to the web panel"));
             permissions.put(PANEL_USERS_INDEX,
@@ -831,9 +822,7 @@ public final class CloudCoreConstants {
         public static final String GLOBAL_STORE_URL = "store_url";
         public static final String GLOBAL_ALLOW_CODE_REDEEM = "code_redemption_enabled";
 
-        // JoinMe settings
-        public static final String JOINME_COOLDOWN = "joinme_cooldown";
-        public static final String JOINME_ENABLED = "joinme_enabled";
+        
 
         public static List<String> getGlobalSettings() {
             return Arrays.asList(
@@ -867,9 +856,7 @@ public final class CloudCoreConstants {
                     GLOBAL_TELEGRAM_URL,
                     GLOBAL_WHATSAPP_URL,
                     GLOBAL_STORE_URL,
-                    GLOBAL_ALLOW_CODE_REDEEM,
-                    JOINME_COOLDOWN,
-                    JOINME_ENABLED);
+                    GLOBAL_ALLOW_CODE_REDEEM);
         }
     }
 
@@ -983,17 +970,7 @@ public final class CloudCoreConstants {
         public static final String SOCIAL_LINK_FORMAT = "social.link_format";
         public static final String SOCIAL_HOVER_TEXT = "social.hover_text";
 
-        // JoinMe messages
-        public static final String JOINME_USAGE = "joinme.usage";
-        public static final String JOINME_NO_PERMISSION = "joinme.no_permission";
-        public static final String JOINME_COOLDOWN = "joinme.cooldown";
-        public static final String JOINME_DISABLED = "joinme.disabled";
-        public static final String JOINME_ERROR = "joinme.error";
-        public static final String JOINME_PLAYER_NAME = "joinme.player_name";
-        public static final String JOINME_IS_PLAYING_ON = "joinme.is_playing_on";
-        public static final String JOINME_SERVER_NAME = "joinme.server_name";
-        public static final String JOINME_CLICK_TO_JOIN = "joinme.click_to_join";
-        public static final String JOINME_HOVER_TEXT = "joinme.hover_text";
+        
 
         // Chatlog messages
         public static final String CHATLOG_COOLDOWN = "chatlog.cooldown";

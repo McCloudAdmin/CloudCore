@@ -54,14 +54,6 @@ public class ChatlogCommand implements SimpleCommand {
         }
         Player player = (Player) source;
         UUID uuid = player.getUniqueId();
-        long now = System.currentTimeMillis();
-        Long lastUsed = cooldowns.get(uuid);
-        if (lastUsed != null && (now - lastUsed) < COOLDOWN_MILLIS) {
-            long secondsLeft = (COOLDOWN_MILLIS - (now - lastUsed)) / 1000;
-            source.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.CHATLOG_COOLDOWN, secondsLeft)));
-            return;
-        }
-        cooldowns.put(uuid, now);
 
         // Permission check (replace with your actual permission string)
         if (!player.hasPermission(Permissions.CHATLOG_COMMAND)) {
@@ -87,6 +79,15 @@ public class ChatlogCommand implements SimpleCommand {
             return;
         }
 
+        // Check cooldown only right before actually creating a chatlog
+        long now = System.currentTimeMillis();
+        Long lastUsed = cooldowns.get(uuid);
+        if (lastUsed != null && (now - lastUsed) < COOLDOWN_MILLIS) {
+            long secondsLeft = (COOLDOWN_MILLIS - (now - lastUsed)) / 1000;
+            source.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.CHATLOG_COOLDOWN, secondsLeft)));
+            return;
+        }
+
         User user = userOpt.get();
         User senderUser = senderOpt.get();
         var chatLog = chatLogManager.createChatLog(user, senderUser);
@@ -95,6 +96,9 @@ public class ChatlogCommand implements SimpleCommand {
             source.sendMessage(legacySerializer.deserialize(messageManager.getColoredMessage(Messages.CHATLOG_NO_MESSAGES)));
             return;
         }
+
+        // Only set cooldown after a successful chatlog creation
+        cooldowns.put(uuid, now);
 
         String chatlogUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL) + "/chatlog/" + chatLog.getId();
 
@@ -117,10 +121,18 @@ public class ChatlogCommand implements SimpleCommand {
 
         if (args.length == 1) {
             String partialName = args[0].toLowerCase();
-            for (User user : userManager.getAllUsers()) {
-                if (user.getUsername().toLowerCase().startsWith(partialName)) {
-                    suggestions.add(user.getUsername());
-                }
+            CommandSource source = invocation.source();
+            if (source instanceof Player) {
+                Player player = (Player) source;
+                // Players connected to the same server (current server/instance) as the command sender
+                player.getCurrentServer().ifPresent(current -> {
+                    current.getServer().getPlayersConnected().forEach(p -> {
+                        String name = p.getUsername();
+                        if (name != null && name.toLowerCase().startsWith(partialName)) {
+                            suggestions.add(name);
+                        }
+                    });
+                });
             }
         }
         return suggestions;

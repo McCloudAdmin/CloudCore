@@ -3,19 +3,21 @@ package systems.mythical.cloudcore.events;
 import systems.mythical.cloudcore.chat.ChatLogManager;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import systems.mythical.cloudcore.permissions.PermissionChecker;
-import systems.mythical.cloudcore.redis.RedisManager;
 import systems.mythical.cloudcore.settings.CloudSettings;
 import systems.mythical.cloudcore.settings.CommonSettings;
 
 import java.util.UUID;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class ChatEvent {
     private static final Logger logger = Logger.getLogger(ChatEvent.class.getName());
     private static ChatLogManager chatLogManager;
     private static PermissionChecker permissionChecker;
     private static CloudSettings cloudSettings;
-    private static RedisManager redisManager;
+    // Redis support removed
+    private static CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     // Permission nodes
     public static final String CHAT_BYPASS_PERMISSION = "cloudcore.chat.bypass";
@@ -28,22 +30,8 @@ public class ChatEvent {
         permissionChecker = PermissionChecker.getInstance();
         cloudSettings = CloudSettings.getInstance(databaseManager, logger);
         
-        // Initialize Redis manager if Redis settings are available
-        try {
-            String redisHost = cloudSettings.getSetting("redis_host");
-            String redisPort = cloudSettings.getSetting("redis_port");
-            String redisPassword = cloudSettings.getSetting("redis_password");
-            
-            if (redisHost != null && redisPort != null) {
-                int port = Integer.parseInt(redisPort);
-                redisManager = RedisManager.getInstance(redisHost, port, redisPassword, logger);
-                logger.info("Redis manager initialized for chat logging");
-            } else {
-                logger.warning("Redis settings not found, falling back to direct database logging");
-            }
-        } catch (Exception e) {
-            logger.warning("Failed to initialize Redis manager: " + e.getMessage() + ". Falling back to direct database logging.");
-        }
+        // Redis support removed: always use direct database logging
+        cloudLogger = CloudLoggerFactory.get();
     }
 
     /**
@@ -56,7 +44,7 @@ public class ChatEvent {
      */
     public static boolean onPlayerChat(UUID uuid, String content, String server) {
         if (chatLogManager == null || permissionChecker == null || cloudSettings == null) {
-            logger.severe("Managers not initialized! Call ChatEvent.initialize() first.");
+            cloudLogger.error("Managers not initialized! Call ChatEvent.initialize() first.");
             return true; // Allow the message if not initialized
         }
 
@@ -66,20 +54,13 @@ public class ChatEvent {
                 return true; // Allow message but don't log it
             }
 
-            // Try to use Redis first, fallback to direct database logging
-            if (redisManager != null && redisManager.isAvailable()) {
-                // Queue the message in Redis for processing by the worker
-                redisManager.queueChatMessage(uuid, content, server, System.currentTimeMillis());
-                logger.fine("Chat message queued in Redis for player " + uuid);
-            } else {
-                // Fallback to direct database logging
-                chatLogManager.logChatMessageAsync(uuid, content, server);
-                logger.fine("Chat message logged directly to database for player " + uuid);
-            }
+            // Directly log to database (Redis removed)
+            chatLogManager.logChatMessageAsync(uuid, content, server);
+            cloudLogger.debug("Chat message logged directly to database for player " + uuid);
                         
             return true;
         } catch (Exception e) {
-            logger.severe("Error handling chat message: " + e.getMessage());
+            cloudLogger.error("Error handling chat message: " + e.getMessage());
             return true; // Allow the message if there's an error
         }
     }

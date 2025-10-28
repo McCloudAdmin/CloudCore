@@ -4,10 +4,11 @@ import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 public class OnServerSwitch {
-    private static final Logger logger = Logger.getLogger(OnServerSwitch.class.getName());
+    private static final CloudLogger logger = CloudLoggerFactory.get();
 
     @Subscribe(order = PostOrder.NORMAL)
     public void onServerSwitch(ServerConnectedEvent event) {
@@ -22,7 +23,7 @@ public class OnServerSwitch {
             );
             logger.info("Processed server switch for player: " + player.getUsername() + " to " + serverName);
         } catch (Exception e) {
-            logger.severe("Error processing server switch: " + e.getMessage());
+            logger.error("Error processing server switch: " + e.getMessage());
             e.printStackTrace();
         }
     }

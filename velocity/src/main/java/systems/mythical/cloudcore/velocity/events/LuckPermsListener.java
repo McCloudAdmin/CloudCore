@@ -8,23 +8,24 @@ import net.luckperms.api.model.user.User;
 import systems.mythical.cloudcore.database.DatabaseManager;
 import systems.mythical.cloudcore.users.UserManager;
 import systems.mythical.cloudcore.permissions.WebPanelPermissionManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.UUID;
 
 public class LuckPermsListener {
     @SuppressWarnings("unused")
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger logger;
     private final UserManager userManager;
     private final LuckPerms luckPerms;
     private final WebPanelPermissionManager webPanelPermissionManager;
 
-    public LuckPermsListener(LuckPerms luckPerms, DatabaseManager databaseManager, Logger logger) {
+    public LuckPermsListener(LuckPerms luckPerms, DatabaseManager databaseManager, java.util.logging.Logger logger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.logger = CloudLoggerFactory.get();
         this.userManager = UserManager.getInstance(databaseManager, logger);
         this.luckPerms = luckPerms;
         this.webPanelPermissionManager = WebPanelPermissionManager.getInstance(databaseManager, logger);
@@ -47,7 +48,7 @@ public class LuckPermsListener {
                 var updatedUser = cloudUser.get();
                 updatedUser.setUserGroup(displayName);
                 userManager.updateUser(updatedUser);
-                logger.info("Updated group for user " + user.getUsername() + " to " + displayName);
+                logger.debug("Updated group for user " + user.getUsername() + " to " + displayName);
             }
         }
 
@@ -74,9 +75,9 @@ public class LuckPermsListener {
 
             // Update the web panel permissions in the database
             webPanelPermissionManager.updateUserPermissions(uuid, webPanelPermissions, negativePermissions);
-            logger.info("Updated web panel permissions for user " + user.getUsername());
+            logger.debug("Updated web panel permissions for user " + user.getUsername());
         } catch (Exception e) {
-            logger.severe("Error updating web panel permissions: " + e.getMessage());
+            logger.error("Error updating web panel permissions: " + e.getMessage());
             e.printStackTrace();
         }
     }

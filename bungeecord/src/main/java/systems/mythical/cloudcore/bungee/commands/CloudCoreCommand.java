@@ -264,7 +264,7 @@ public class CloudCoreCommand extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        List<String> suggestions = new ArrayList<>();
+        final List<String> suggestions = new ArrayList<>();
 
         if (args.length == 1) {
             if (sender.hasPermission(Permissions.ADMIN_RELOAD)) {
@@ -282,6 +282,8 @@ public class CloudCoreCommand extends Command implements TabExecutor {
             if (sender.hasPermission(Permissions.SETTINGS_MANAGE)) {
                 suggestions.add("settings");
             }
+            // filter by partial first-argument input
+            filterByPrefixInPlace(suggestions, args[0]);
         } else if (args.length == 2) {
             String subCommand = args[0].toLowerCase();
             switch (subCommand) {
@@ -296,18 +298,34 @@ public class CloudCoreCommand extends Command implements TabExecutor {
                     }
                     break;
             }
+            // filter by partial second-argument input
+            filterByPrefixInPlace(suggestions, args[1]);
         } else if (args.length == 3) {
             String subCommand = args[0].toLowerCase();
             String action = args[1].toLowerCase();
             if (subCommand.equals("maintenance") && (action.equals("add") || action.equals("remove"))) {
                 // Suggest online players
                 plugin.getProxy().getPlayers().forEach(player -> suggestions.add(player.getName()));
+                filterByPrefixInPlace(suggestions, args[2]);
             } else if (subCommand.equals("settings") && action.equals("set")) {
                 // Suggest available settings
                 suggestions.addAll(Settings.getGlobalSettings());
+                filterByPrefixInPlace(suggestions, args[2]);
+            } else if (subCommand.equals("settings") && action.equals("get")) {
+                // Suggest available settings for get
+                suggestions.addAll(Settings.getGlobalSettings());
+                filterByPrefixInPlace(suggestions, args[2]);
             }
         }
 
         return suggestions;
+    }
+
+    private void filterByPrefixInPlace(List<String> items, String prefix) {
+        String lowerPrefix = prefix == null ? "" : prefix.toLowerCase();
+        if (lowerPrefix.isEmpty()) {
+            return;
+        }
+        items.removeIf(item -> item == null || !item.toLowerCase().startsWith(lowerPrefix));
     }
 } 

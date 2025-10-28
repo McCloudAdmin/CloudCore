@@ -23,10 +23,12 @@ import net.luckperms.api.node.types.PermissionNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 import java.util.UUID;
 
 public class OnConnect {
-    private static final Logger logger = Logger.getLogger(OnConnect.class.getName());
+    private static final CloudLogger cloudLogger = CloudLoggerFactory.get();
     private final DatabaseManager databaseManager;
     private final Logger pluginLogger;
     private final WebPanelPermissionManager webPanelPermissionManager;
@@ -69,7 +71,7 @@ public class OnConnect {
                     String kickMsg = messageManager.getColoredMessage("maintenance.kick_message");
                     Component kickComponent = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().deserialize(kickMsg);
                     player.disconnect(kickComponent);
-                    pluginLogger.info("Kicked " + username + " (" + uuid + ") due to maintenance mode.");
+                    cloudLogger.info("Kicked " + username + " (" + uuid + ") due to maintenance mode.");
                 }
             }
 
@@ -99,7 +101,7 @@ public class OnConnect {
 
             // Update the web panel permissions in the database
             webPanelPermissionManager.updateUserPermissions(uuid, webPanelPermissions, negativePermissions);
-            pluginLogger.info("Updated web panel permissions for user " + username + " on join");
+            cloudLogger.debug("Updated web panel permissions for user " + username + " on join");
 
             JoinEvent.onPlayerJoin(
                 username,
@@ -110,9 +112,9 @@ public class OnConnect {
                 serverName,
                 groupName
             );
-            logger.info("Processed join event for player: " + username + " with group: " + groupName);
+            cloudLogger.debug("Processed join event for player: " + username + " with group: " + groupName);
         } catch (Exception e) {
-            logger.severe("Error processing join event: " + e.getMessage());
+            cloudLogger.error("Error processing join event: " + e.getMessage());
             e.printStackTrace();
         }
     }

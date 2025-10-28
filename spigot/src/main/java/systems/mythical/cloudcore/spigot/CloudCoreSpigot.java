@@ -28,6 +28,8 @@ import systems.mythical.cloudcore.settings.SettingsManager;
 import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.core.CloudCoreConstants.Settings;
 import systems.mythical.cloudcore.spigot.stats.StatsBufferManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.DefaultCloudLogger;
 
 /**
  * Plugin Dependencies
@@ -68,8 +70,17 @@ public class CloudCoreSpigot extends JavaPlugin {
     @Override
     public void onEnable() {
         try {
+            // Initialize CloudLoggerFactory FIRST before anything else
+            CloudLoggerFactory.init(new DefaultCloudLogger(getLogger()));
+            
             initDependencies();
             initConfig();
+            
+            // Set debug supplier after config is loaded
+            if (cloudCore != null && cloudCore.getConfig() != null) {
+                ((DefaultCloudLogger)CloudLoggerFactory.get()).setDebugSupplier(() -> cloudCore.getConfig().isDebugMode());
+            }
+            
             initDatabase();
             initMessageManager();
             initSettings();
@@ -150,7 +161,7 @@ public class CloudCoreSpigot extends JavaPlugin {
         CommonSettings.BooleanSetting enableConsoleCommand = new CommonSettings.BooleanSetting(
                 Settings.ENABLE_CONSOLE_COMMAND, false);
         if (settingsManager.getValue(enableConsoleCommand)) {
-            ConsoleCommand.initialize(databaseManager);
+            ConsoleCommand.initialize(databaseManager, getLogger());
             getCommand("spigotconsole").setExecutor(new SpigotConsoleCommand(this));
             getCommand("scex").setExecutor(new SpigotConsoleCommand(this));
             getCommand("cex").setExecutor(new SpigotConsoleCommand(this));

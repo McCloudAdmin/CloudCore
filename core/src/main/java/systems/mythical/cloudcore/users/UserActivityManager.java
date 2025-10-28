@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.users;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,11 +12,11 @@ import java.util.logging.Logger;
 public class UserActivityManager {
     private static UserActivityManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private UserActivityManager(DatabaseManager databaseManager, Logger logger) {
+    private UserActivityManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static UserActivityManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -37,7 +39,7 @@ public class UserActivityManager {
                 return result > 0;
             }
         } catch (SQLException e) {
-            logger.severe("Error logging user activity: " + e.getMessage());
+            cloudLogger.error("Error logging user activity: " + e.getMessage());
             return false;
         }
     }
@@ -55,7 +57,7 @@ public class UserActivityManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting user activities: " + e.getMessage());
+            cloudLogger.error("Error getting user activities: " + e.getMessage());
         }
         return activities;
     }

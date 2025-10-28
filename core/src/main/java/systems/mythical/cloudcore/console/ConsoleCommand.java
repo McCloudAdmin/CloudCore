@@ -7,11 +7,10 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 public class ConsoleCommand {
-    private static final Logger logger = Logger.getLogger(ConsoleCommand.class.getName());
     private static ConsoleExecutorManager consoleExecutorManager;
     private static MessageManager messageManager;
 
-    public static void initialize(DatabaseManager databaseManager) {
+    public static void initialize(DatabaseManager databaseManager, Logger logger) {
         consoleExecutorManager = ConsoleExecutorManager.getInstance(databaseManager, logger);
         messageManager = MessageManager.getInstance(databaseManager, logger);
     }

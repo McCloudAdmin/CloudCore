@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.console;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,11 +15,11 @@ import java.util.logging.Logger;
 public class ConsoleTaskManager {
     private static ConsoleTaskManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private ConsoleTaskManager(DatabaseManager databaseManager, Logger logger) {
+    private ConsoleTaskManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static ConsoleTaskManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -48,7 +50,7 @@ public class ConsoleTaskManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to get pending console tasks: " + e.getMessage());
+            cloudLogger.error("Failed to get pending console tasks: " + e.getMessage());
         }
         return tasks;
     }
@@ -61,7 +63,7 @@ public class ConsoleTaskManager {
                 stmt.executeUpdate();
             }
         } catch (SQLException e) {
-            logger.severe("Failed to mark console task as executed: " + e.getMessage());
+            cloudLogger.error("Failed to mark console task as executed: " + e.getMessage());
         }
     }
 } 

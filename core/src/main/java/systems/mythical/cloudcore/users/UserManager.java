@@ -10,15 +10,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class UserManager {
     private static UserManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     private UserManager(DatabaseManager databaseManager, Logger logger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
     }
 
     public static UserManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -72,7 +73,7 @@ public class UserManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error creating user: " + e.getMessage());
+            cloudLogger.error("Error creating user: " + e.getMessage());
         }
         return null;
     }
@@ -89,7 +90,7 @@ public class UserManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting user by ID: " + e.getMessage());
+            cloudLogger.error("Error getting user by ID: " + e.getMessage());
         }
         return Optional.empty();
     }
@@ -106,7 +107,7 @@ public class UserManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting user by UUID: " + e.getMessage());
+            cloudLogger.error("Error getting user by UUID: " + e.getMessage());
         }
         return Optional.empty();
     }
@@ -123,7 +124,7 @@ public class UserManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting user by username: " + e.getMessage());
+            cloudLogger.error("Error getting user by username: " + e.getMessage());
         }
         return Optional.empty();
     }
@@ -182,7 +183,7 @@ public class UserManager {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.severe("Error updating user: " + e.getMessage());
+            cloudLogger.error("Error updating user: " + e.getMessage());
             return false;
         }
     }
@@ -195,7 +196,7 @@ public class UserManager {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.severe("Error deleting user: " + e.getMessage());
+            cloudLogger.error("Error deleting user: " + e.getMessage());
             return false;
         }
     }
@@ -211,7 +212,8 @@ public class UserManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting all users: " + e.getMessage());
+            cloudLogger.error("Error getting all users: " + e.getMessage());
+            return new ArrayList<>();
         }
         return users;
     }
@@ -231,7 +233,8 @@ public class UserManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting other accounts: " + e.getMessage());
+            cloudLogger.error("Error getting other accounts: " + e.getMessage());
+            return new ArrayList<>();
         }
         return otherAccounts;
     }
@@ -241,11 +244,11 @@ public class UserManager {
             String query = "UPDATE mccloudadmin_users SET user_online = 'false' WHERE deleted = 'false'";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 int updated = stmt.executeUpdate();
-                logger.info("Marked " + updated + " users as offline");
+                cloudLogger.info("Marked " + updated + " users as offline");
                 return updated > 0;
             }
         } catch (SQLException e) {
-            logger.severe("Error marking users as offline: " + e.getMessage());
+            cloudLogger.error("Error marking users as offline: " + e.getMessage());
             return false;
         }
     }

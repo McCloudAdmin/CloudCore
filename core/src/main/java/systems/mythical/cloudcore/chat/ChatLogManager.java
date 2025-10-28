@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.chat;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,11 +13,11 @@ import java.util.logging.Logger;
 public class ChatLogManager {
     private static ChatLogManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private ChatLogManager(DatabaseManager databaseManager, Logger logger) {
+    private ChatLogManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static ChatLogManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -42,7 +44,7 @@ public class ChatLogManager {
                 stmt.executeUpdate();
             }
         } catch (SQLException e) {
-            logger.severe("Error logging chat message for " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error logging chat message for " + uuid + ": " + e.getMessage());
         }
     }
 
@@ -56,4 +58,4 @@ public class ChatLogManager {
     public void logChatMessageAsync(UUID uuid, String content, String server) {
         new Thread(() -> logChatMessage(uuid, content, server)).start();
     }
-} 
+}

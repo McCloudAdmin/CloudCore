@@ -7,16 +7,18 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 import systems.mythical.cloudcore.config.CloudCoreConfig;
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 public class WorkerManager {
     private final CloudCoreConfig config;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
     private final DatabaseManager databaseManager;
 
     public WorkerManager(CloudCoreConfig config, DatabaseManager databaseManager, Logger logger) {
         this.config = config;
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public void initialize() {
@@ -24,11 +26,11 @@ public class WorkerManager {
             if (!workerExists()) {
                 registerWorker();
             } else {
-                logger.info("Worker already registered in database");
+                cloudLogger.debug("Worker already registered in database");
             }
-            logger.info("Worker initialized successfully!");
+            cloudLogger.info("Worker initialized successfully!");
         } else {
-            logger.severe("Failed to initialize worker due to invalid credentials");
+            cloudLogger.error("Failed to initialize worker due to invalid credentials");
         }
     }
 
@@ -38,15 +40,15 @@ public class WorkerManager {
         String uuid = config.getWorkerUUID();
 
         if (name == null || name.trim().isEmpty()) {
-            logger.severe("Worker name is empty in config");
+            cloudLogger.error("Worker name is empty in config");
             return false;
         }
         if (key == null || key.trim().isEmpty()) {
-            logger.severe("Worker key is empty in config");
+            cloudLogger.error("Worker key is empty in config");
             return false;
         }
         if (uuid == null || uuid.trim().isEmpty()) {
-            logger.severe("Worker UUID is empty in config");
+            cloudLogger.error("Worker UUID is empty in config");
             return false;
         }
 
@@ -67,7 +69,7 @@ public class WorkerManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to check if worker exists: " + e.getMessage());
+            cloudLogger.error("Failed to check if worker exists: " + e.getMessage());
         }
         return false;
     }
@@ -83,9 +85,9 @@ public class WorkerManager {
             statement.setString(3, config.getWorkerUUID().trim());
             
             statement.executeUpdate();
-            logger.info("Worker registered successfully in database");
+            cloudLogger.info("Worker registered successfully in database");
         } catch (SQLException e) {
-            logger.severe("Failed to register worker: " + e.getMessage());
+            cloudLogger.error("Failed to register worker: " + e.getMessage());
         }
     }
 }

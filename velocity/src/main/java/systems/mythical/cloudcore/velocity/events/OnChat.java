@@ -5,10 +5,14 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.Player;
 
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 public class OnChat {
-    private static final Logger logger = Logger.getLogger(OnChat.class.getName());
+    private final CloudLogger cloudLogger;
+
+    public OnChat(CloudLogger cloudLogger) {
+        this.cloudLogger = cloudLogger;
+    }
 
     @SuppressWarnings("deprecation")
 	@Subscribe(order = PostOrder.NORMAL)
@@ -30,9 +34,9 @@ public class OnChat {
                 event.setResult(PlayerChatEvent.ChatResult.denied());
             }
 
-            logger.info("Processed chat message from " + player.getUsername());
+            cloudLogger.debug("Processed chat message from " + player.getUsername());
         } catch (Exception e) {
-            logger.severe("Error processing chat event: " + e.getMessage());
+            cloudLogger.error("Error processing chat event: " + e.getMessage());
             e.printStackTrace();
         }
     }

@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.users;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,11 +12,11 @@ import java.util.logging.Logger;
 public class IPRelationshipManager {
     private static IPRelationshipManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private IPRelationshipManager(DatabaseManager databaseManager, Logger logger) {
+    private IPRelationshipManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static IPRelationshipManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -51,7 +53,7 @@ public class IPRelationshipManager {
                 return insertStmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.severe("Error managing IP relationship: " + e.getMessage());
+            cloudLogger.error("Error managing IP relationship: " + e.getMessage());
             return false;
         }
     }
@@ -69,7 +71,7 @@ public class IPRelationshipManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting user IP relationships: " + e.getMessage());
+            cloudLogger.error("Error getting user IP relationships: " + e.getMessage());
         }
         return relationships;
     }
@@ -87,7 +89,7 @@ public class IPRelationshipManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting IP relationships: " + e.getMessage());
+            cloudLogger.error("Error getting IP relationships: " + e.getMessage());
         }
         return relationships;
     }

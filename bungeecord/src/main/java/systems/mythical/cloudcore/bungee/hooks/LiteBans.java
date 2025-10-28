@@ -8,16 +8,17 @@ import systems.mythical.cloudcore.core.CloudCore;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 import java.io.File;
 
 import systems.mythical.cloudcore.bungee.CloudCoreBungee;
 
 public class LiteBans {
-    private static final Logger logger = Logger.getLogger(LiteBans.class.getName());
-    private static final CloudCore cloudCore = new CloudCore(new File("plugins/CloudCore"), logger, false);
-    private static final DatabaseManager databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
-    private static final UserManager userManager = UserManager.getInstance(databaseManager, logger);
+    private static final CloudLogger logger = CloudLoggerFactory.get();
+    private static final CloudCore cloudCore = new CloudCore(new File("plugins/CloudCore"), java.util.logging.Logger.getLogger("CloudCore"), false);
+    private static final DatabaseManager databaseManager = new DatabaseManager(cloudCore.getConfig(), java.util.logging.Logger.getLogger("CloudCore"));
+    private static final UserManager userManager = UserManager.getInstance(databaseManager, java.util.logging.Logger.getLogger("CloudCore"));
 
     public LiteBans(CloudCoreBungee cloudCoreBungee) {
     }
@@ -75,7 +76,7 @@ public class LiteBans {
                 }
             }
         } catch (Exception e) {
-            logger.severe("Error handling ban event: " + e.getMessage());
+            logger.error("Error handling ban event: " + e.getMessage());
         }
     }
 
@@ -93,7 +94,7 @@ public class LiteBans {
                 }
             }
         } catch (Exception e) {
-            logger.severe("Error handling unban event: " + e.getMessage());
+            logger.error("Error handling unban event: " + e.getMessage());
         }
     }
 }

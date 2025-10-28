@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.commands;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,11 +13,11 @@ import java.util.logging.Logger;
 public class CommandLogManager {
     private static CommandLogManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private CommandLogManager(DatabaseManager databaseManager, Logger logger) {
+    private CommandLogManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static CommandLogManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -42,7 +44,7 @@ public class CommandLogManager {
                 stmt.executeUpdate();
             }
         } catch (SQLException e) {
-            logger.severe("Error logging command for " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error logging command for " + uuid + ": " + e.getMessage());
         }
     }
 
@@ -56,4 +58,4 @@ public class CommandLogManager {
     public void logCommandAsync(UUID uuid, String content, String server) {
         new Thread(() -> logCommand(uuid, content, server)).start();
     }
-} 
+}

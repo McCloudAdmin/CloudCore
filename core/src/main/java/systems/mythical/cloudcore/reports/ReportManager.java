@@ -15,24 +15,27 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
+
 public class ReportManager {
     private static ReportManager instance;
     private final DatabaseManager databaseManager;
     @SuppressWarnings("unused")
     private final MessageManager messageManager;
     private final CloudSettings cloudSettings;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
     private final Map<UUID, Long> reportCooldowns;
 
     // Settings
     private static final CommonSettings.BooleanSetting ENABLE_REPORT_SYSTEM = new CommonSettings.BooleanSetting("enable_report_system", true);
     private static final CommonSettings.IntegerSetting REPORT_COOLDOWN = new CommonSettings.IntegerSetting("report_cooldown", 120);
 
-    private ReportManager(DatabaseManager databaseManager, Logger logger) {
+    private ReportManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.messageManager = MessageManager.getInstance(databaseManager, logger);
-        this.cloudSettings = CloudSettings.getInstance(databaseManager, logger);
-        this.logger = logger;
+        this.messageManager = MessageManager.getInstance(databaseManager, platformLogger);
+        this.cloudSettings = CloudSettings.getInstance(databaseManager, platformLogger);
+        this.cloudLogger = CloudLoggerFactory.get();
         this.reportCooldowns = new ConcurrentHashMap<>();
     }
 
@@ -96,7 +99,7 @@ public class ReportManager {
                 return true;
             }
         } catch (SQLException e) {
-            logger.severe("Error creating report: " + e.getMessage());
+            cloudLogger.error("Error creating report: " + e.getMessage());
             return false;
         }
     }
@@ -122,7 +125,7 @@ public class ReportManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error getting report: " + e.getMessage());
+            cloudLogger.error("Error getting report: " + e.getMessage());
         }
         return null;
     }
@@ -136,7 +139,7 @@ public class ReportManager {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.severe("Error updating report status: " + e.getMessage());
+            cloudLogger.error("Error updating report status: " + e.getMessage());
             return false;
         }
     }
@@ -149,7 +152,7 @@ public class ReportManager {
                 return stmt.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            logger.severe("Error deleting report: " + e.getMessage());
+            cloudLogger.error("Error deleting report: " + e.getMessage());
             return false;
         }
     }

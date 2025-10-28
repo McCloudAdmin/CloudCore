@@ -12,17 +12,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class CloudSettings {
     private static CloudSettings instance;
     private final Map<String, String> settingsCache;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger = CloudLoggerFactory.get();
     private final ScheduledExecutorService scheduler;
 
     private CloudSettings(DatabaseManager databaseManager, Logger logger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
         this.settingsCache = new HashMap<>();
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         
@@ -56,10 +57,10 @@ public class CloudSettings {
                     settingsCache.putAll(newCache);
                 }
                 
-                logger.info("Settings cache refreshed successfully");
+                cloudLogger.debug("Settings cache refreshed successfully");
             }
         } catch (SQLException e) {
-            logger.severe("Error refreshing settings cache: " + e.getMessage());
+            cloudLogger.error("Error refreshing settings cache: " + e.getMessage());
         }
     }
 
@@ -105,9 +106,9 @@ public class CloudSettings {
             synchronized (settingsCache) {
                 settingsCache.put(name, value);
             }
-            logger.info("Successfully set value for setting: " + name);
+            cloudLogger.info("Successfully set value for setting: " + name);
         } catch (SQLException e) {
-            logger.severe("Error setting value for " + name + ": " + e.getMessage());
+            cloudLogger.error("Error setting value for " + name + ": " + e.getMessage());
         }
     }
 
@@ -128,15 +129,15 @@ public class CloudSettings {
                             synchronized (settingsCache) {
                                 settingsCache.remove(name);
                             }
-                            logger.info("Successfully deleted setting: " + name);
+                            cloudLogger.info("Successfully deleted setting: " + name);
                         }
                     } else {
-                        logger.info("Setting " + name + " does not exist, skipping delete");
+                        cloudLogger.debug("Setting " + name + " does not exist, skipping delete");
                     }
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error deleting setting " + name + ": " + e.getMessage());
+            cloudLogger.error("Error deleting setting " + name + ": " + e.getMessage());
         }
     }
 

@@ -10,12 +10,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class MessageManager {
     private static MessageManager instance;
     private final Map<String, String> messageCache;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger = CloudLoggerFactory.get();
     private final ScheduledExecutorService scheduler;
 
     // Color code patterns
@@ -24,7 +26,6 @@ public class MessageManager {
 
     private MessageManager(DatabaseManager databaseManager, Logger logger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
         this.messageCache = new HashMap<>();
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         
@@ -62,10 +63,10 @@ public class MessageManager {
                     messageCache.putAll(newCache);
                 }
                 
-                logger.info("Message cache refreshed successfully");
+                cloudLogger.debug("Message cache refreshed successfully");
             }
         } catch (SQLException e) {
-            logger.severe("Error refreshing message cache: " + e.getMessage());
+            cloudLogger.error("Error refreshing message cache: " + e.getMessage());
         }
     }
 
@@ -106,7 +107,7 @@ public class MessageManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error setting message " + name + ": " + e.getMessage());
+            cloudLogger.error("Error setting message " + name + ": " + e.getMessage());
         }
     }
 
@@ -122,7 +123,7 @@ public class MessageManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error deleting message " + name + ": " + e.getMessage());
+            cloudLogger.error("Error deleting message " + name + ": " + e.getMessage());
         }
     }
 

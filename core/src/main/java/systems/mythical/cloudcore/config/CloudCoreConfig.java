@@ -1,6 +1,9 @@
 package systems.mythical.cloudcore.config;
 
 import org.yaml.snakeyaml.Yaml;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -15,21 +18,22 @@ public class CloudCoreConfig {
     private static CloudCoreConfig instance;
     private final Map<String, Object> config;
     private final File configFile;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
     private final Yaml yaml;
     private final boolean isSpigot;
 
-    private CloudCoreConfig(File dataFolder, Logger logger, boolean isSpigot) {
-        this.logger = logger;
+    private CloudCoreConfig(File dataFolder, Logger platformLogger, boolean isSpigot) {
+        this.cloudLogger = CloudLoggerFactory.get();
         this.configFile = new File(dataFolder, "config.yml");
         this.yaml = new Yaml();
         this.config = loadConfig(isSpigot);
         this.isSpigot = isSpigot;
-        logger.info("CloudCoreConfig instance created for " + (isSpigot ? "Spigot" : "Proxy") + "!");
+        cloudLogger.info("CloudCoreConfig instance created for " + (isSpigot ? "Spigot" : "Proxy") + "!");
     }
 
     public static CloudCoreConfig getInstance(File dataFolder, Logger logger, boolean isSpigot) {
-        logger.info("Getting CloudCoreConfig instance for " + (isSpigot ? "Spigot" : "Proxy") + "!");
+        CloudLogger cloudLogger = CloudLoggerFactory.get();
+        cloudLogger.info("Getting CloudCoreConfig instance for " + (isSpigot ? "Spigot" : "Proxy") + "!");
         if (instance == null) {
             instance = new CloudCoreConfig(dataFolder, logger, isSpigot);
         }
@@ -48,7 +52,7 @@ public class CloudCoreConfig {
                 return yaml.load(input);
             }
         } catch (Exception e) {
-            logger.severe("Error loading configuration: " + e.getMessage());
+            cloudLogger.error("Error loading configuration: " + e.getMessage());
             return createDefaultConfig(isSpigot );
         }
     }
@@ -57,7 +61,7 @@ public class CloudCoreConfig {
         try {
             yaml.dump(config, new FileWriter(configFile));
         } catch (Exception e) {
-            logger.severe("Error saving configuration: " + e.getMessage());
+            cloudLogger.error("Error saving configuration: " + e.getMessage());
         }
     }
 
@@ -80,10 +84,10 @@ public class CloudCoreConfig {
         Map<String, Object> worker = new HashMap<>();
         if (isSpigot) {
             worker.put("name", "server");
-            logger.info("[SPIGOT] Worker name set to server");
+            cloudLogger.info("[SPIGOT] Worker name set to server");
         } else {
             worker.put("name", "proxy");
-            logger.info("[PROXY] Worker name set to proxy");
+            cloudLogger.info("[PROXY] Worker name set to proxy");
         }
         worker.put("key", generateRandomKey());
         worker.put("uuid", UUID.randomUUID().toString());
@@ -154,4 +158,4 @@ public class CloudCoreConfig {
     public String getWorkerUUID() {
         return get("worker.uuid", "");
     }
-} 
+}

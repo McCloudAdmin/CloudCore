@@ -1,11 +1,12 @@
 package systems.mythical.cloudcore.permissions;
 
 import java.util.UUID;
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 public class PermissionChecker {
     private static PermissionChecker instance;
-    private static final Logger logger = Logger.getLogger(PermissionChecker.class.getName());
+    private static final CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     private PermissionChecker() {}
 
@@ -30,7 +31,7 @@ public class PermissionChecker {
             // We'll use the platform's permission system through the executor
             return PlatformPermissionBridge.checkPermission(uuid, permission);
         } catch (Exception e) {
-            logger.severe("Error checking permission " + permission + " for UUID " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error checking permission " + permission + " for UUID " + uuid + ": " + e.getMessage());
             // Default to false if there's an error
             return false;
         }

@@ -3,14 +3,15 @@ package systems.mythical.cloudcore.velocity.kick;
 import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import systems.mythical.cloudcore.kick.KickExecutor;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class VelocityKickExecutor implements KickExecutor {
     private static VelocityKickExecutor instance;
     private final ProxyServer proxy;
-    private static final Logger logger = Logger.getLogger(VelocityKickExecutor.class.getName());
+    private static final CloudLogger logger = CloudLoggerFactory.get();
 
     private VelocityKickExecutor(ProxyServer proxy) {
         this.proxy = proxy;
@@ -30,7 +31,7 @@ public class VelocityKickExecutor implements KickExecutor {
                 player.disconnect(LegacyComponentSerializer.legacyAmpersand().deserialize(reason));
                 logger.info("Successfully kicked player " + player.getUsername() + " (" + uuid + "): " + reason);
             } catch (Exception e) {
-                logger.severe("Failed to kick player " + player.getUsername() + " (" + uuid + "): " + e.getMessage());
+                logger.error("Failed to kick player " + player.getUsername() + " (" + uuid + "): " + e.getMessage());
             }
         });
     }

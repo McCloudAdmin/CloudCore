@@ -29,16 +29,18 @@ import systems.mythical.cloudcore.settings.SettingsManager;
 import systems.mythical.cloudcore.settings.CommonSettings;
 import systems.mythical.cloudcore.bungee.commands.CloudCoreCommand;
 import systems.mythical.cloudcore.bungee.commands.PanelCommand;
-import systems.mythical.cloudcore.bungee.commands.PerformJoinCommand;
 import systems.mythical.cloudcore.utils.DependencyManager;
 import systems.mythical.cloudcore.bungee.tasks.ConsoleTaskScheduler;
+import systems.mythical.cloudcore.utils.CloudLogger;
+import systems.mythical.cloudcore.utils.DefaultCloudLogger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
 
 import java.util.UUID;
 import java.util.logging.Logger;
 
 import systems.mythical.cloudcore.bungee.hooks.LiteBans;
 import systems.mythical.cloudcore.bungee.commands.InfoCommand;
-import systems.mythical.cloudcore.bungee.commands.JoinMeCommand;
+ 
 import systems.mythical.cloudcore.bungee.commands.ProfileCommand;
 import systems.mythical.cloudcore.bungee.commands.ChatlogCommand;
 
@@ -51,17 +53,21 @@ public class CloudCoreBungee extends Plugin {
     private DatabaseManager databaseManager;
     private final Logger logger = getLogger();
     private ConsoleTaskScheduler consoleTaskScheduler;
+    private CloudLogger cloudLogger;
 
     @SuppressWarnings("unused")
     private boolean litebansEnabled = false;
 
     @Override
     public void onEnable() {
-        logger.info("CloudCore has been initialized!");
-        logger.info("Forcing plugin to run in production mode.");
+        cloudLogger = new DefaultCloudLogger(logger);
+        cloudLogger.setDebugSupplier(() -> cloudCore != null && cloudCore.getConfig().isDebugMode());
+        CloudLoggerFactory.init(cloudLogger);
+        cloudLogger.info("CloudCore has been initialized!");
+        cloudLogger.info("Forcing plugin to run in production mode.");
 
         if (getProxy().getPluginManager().getPlugin("LuckPerms") == null) {
-            logger.info("Checking and downloading required dependencies...");
+            cloudLogger.info("Checking and downloading required dependencies...");
             try {
                 DependencyManager dependencyManager = new DependencyManager(
                         logger,
@@ -71,22 +77,22 @@ public class CloudCoreBungee extends Plugin {
                 dependencyManager.checkAndDownloadDependencies()
                         .thenAccept(success -> {
                             if (!success) {
-                                logger.severe("Failed to download required dependencies");
+                                cloudLogger.error("Failed to download required dependencies");
                                 getProxy().stop();
                             } else {
-                                logger.info("Successfully downloaded all required dependencies");
+                                cloudLogger.info("Successfully downloaded all required dependencies");
                                 getProxy().stop(); // Restart to load new plugins
                             }
                         })
                         .exceptionally(ex -> {
-                            logger.severe("Error managing dependencies: " + ex.getMessage());
+                            cloudLogger.error("Error managing dependencies: " + ex.getMessage());
                             ex.printStackTrace();
                             getProxy().stop();
                             return null;
                         });
                 return;
             } catch (Exception e) {
-                logger.severe("Failed to initialize dependency manager: " + e.getMessage());
+                cloudLogger.error("Failed to initialize dependency manager: " + e.getMessage());
                 e.printStackTrace();
                 getProxy().stop();
                 return;
@@ -97,11 +103,11 @@ public class CloudCoreBungee extends Plugin {
 
         if (getProxy().getPluginManager().getPlugin("LiteBans") == null) {
             litebansEnabled = false;
-            logger.info("LiteBans is not installed, LiteBans support is disabled.");
+            cloudLogger.info("LiteBans is not installed, LiteBans support is disabled.");
         } else {
             litebansEnabled = true;
-            logger.info("LiteBans is installed, LiteBans support is enabled.");
-            logger.info("CloudCore will process bans from LiteBans to panel.");
+            cloudLogger.info("LiteBans is installed, LiteBans support is enabled.");
+            cloudLogger.info("CloudCore will process bans from LiteBans to panel.");
             LiteBans liteBans = new LiteBans(this);
             liteBans.registerEvents();
         }
@@ -118,18 +124,18 @@ public class CloudCoreBungee extends Plugin {
 
             // Initialize database
             databaseManager = new DatabaseManager(cloudCore.getConfig(), logger);
-            logger.info("Database connection pool initialized successfully!");
+            cloudLogger.info("Database connection pool initialized successfully!");
 
             // Initialize system user
             systems.mythical.cloudcore.users.SystemUserManager systemUserManager = 
                 systems.mythical.cloudcore.users.SystemUserManager.getInstance(databaseManager, logger);
             systemUserManager.createSystemUserIfNotExists();
-            logger.info("System user initialized successfully!");
+            cloudLogger.info("System user initialized successfully!");
 
             // Initialize worker
             WorkerManager worker = new WorkerManager(cloudCore.getConfig(), databaseManager, logger);
             worker.initialize();
-            logger.info("Worker initialized successfully!");
+            cloudLogger.info("Worker initialized successfully!");
 
             // Initialize settings
             CloudSettings cloudSettings = CloudSettings.getInstance(databaseManager, logger);
@@ -141,24 +147,24 @@ public class CloudCoreBungee extends Plugin {
                     true);
 
             JoinEvent.initialize(databaseManager);
-            logger.info("[CloudCore] Join events initialized");
+            cloudLogger.info("[CloudCore] Join events initialized");
 
             ServerSwitchEvent.initialize(databaseManager);
-            logger.info("[CloudCore] Server switch events initialized");
+            cloudLogger.info("[CloudCore] Server switch events initialized");
 
             QuitEvent.initialize(databaseManager);
-            logger.info("[CloudCore] Quit events initialized");
+            cloudLogger.info("[CloudCore] Quit events initialized");
 
             if (settingsManager.getValue(logChatEvents)) {
                 ChatEvent.initialize(databaseManager);
-                logger.info("[CloudCore] Chat events initialized");
+                cloudLogger.info("[CloudCore] Chat events initialized");
             }
 
             if (settingsManager.getValue(logCommandEvents)) {
                 CommandEvent.initialize(databaseManager);
-                logger.info("[CloudCore] Command events initialized");
-                ConsoleCommand.initialize(databaseManager);
-                logger.info("[CloudCore] Console commands initialized");
+                cloudLogger.info("[CloudCore] Command events initialized");
+                ConsoleCommand.initialize(databaseManager, getLogger());
+                cloudLogger.info("[CloudCore] Console commands initialized");
             }
 
             MaintenanceSystemCommand.initialize(databaseManager, logger);
@@ -168,10 +174,10 @@ public class CloudCoreBungee extends Plugin {
             getProxy().getPluginManager().registerListener(this, new OnServerSwitch());
             getProxy().getPluginManager().registerListener(this, new OnQuit());
             if (settingsManager.getValue(logChatEvents)) {
-                getProxy().getPluginManager().registerListener(this, new OnChat());
+                getProxy().getPluginManager().registerListener(this, new OnChat(cloudLogger));
             }
             if (settingsManager.getValue(logCommandEvents)) {
-                getProxy().getPluginManager().registerListener(this, new OnCommand());
+                getProxy().getPluginManager().registerListener(this, new OnCommand(cloudLogger));
             }
 
             // Initialize commands
@@ -185,11 +191,11 @@ public class CloudCoreBungee extends Plugin {
             // Initialize LuckPerms listener
             LuckPerms luckPerms = LuckPermsProvider.get();
             new LuckPermsListener(luckPerms, databaseManager, logger);
-            logger.info("[CloudCore] LuckPerms listener initialized");
+            cloudLogger.info("[CloudCore] LuckPerms listener initialized");
 
-            logger.info("CloudCore BungeeCord plugin has been enabled!");
+            cloudLogger.info("CloudCore BungeeCord plugin has been enabled!");
         } catch (Exception e) {
-            logger.severe("Failed to initialize CloudCore: " + e.getMessage());
+            cloudLogger.error("Failed to initialize CloudCore: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -211,7 +217,7 @@ public class CloudCoreBungee extends Plugin {
             consoleTaskScheduler.stop();
         }
 
-        logger.info("CloudCore BungeeCord plugin has been disabled!");
+        cloudLogger.info("CloudCore BungeeCord plugin has been disabled!");
     }
 
     public void initializeCommands(SettingsManager settingsManager) {
@@ -245,17 +251,7 @@ public class CloudCoreBungee extends Plugin {
             // Register proxy console command
             getProxy().getPluginManager().registerCommand(this, new ProxyConsoleCommand(this));
         }
-        if (settingsManager.getValue(new CommonSettings.BooleanSetting(Settings.JOINME_ENABLED, false))) {
-            try {
-                JoinMeCommand joinMeCommand = new JoinMeCommand(this);
-                getProxy().getPluginManager().registerCommand(this, joinMeCommand);
-                getProxy().getPluginManager().registerCommand(this, new PerformJoinCommand(this, joinMeCommand));
-                getLogger().info("[CloudCore] /joinme command registered successfully.");
-            } catch (Exception e) {
-                getLogger().severe("[CloudCore] Failed to register /joinme: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
+        
 
     }
 

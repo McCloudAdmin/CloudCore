@@ -6,10 +6,14 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 public class OnCommand implements Listener {
-    private static final Logger logger = Logger.getLogger(OnCommand.class.getName());
+    private final CloudLogger cloudLogger;
+
+    public OnCommand(CloudLogger cloudLogger) {
+        this.cloudLogger = cloudLogger;
+    }
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onCommand(ChatEvent event) {
@@ -35,9 +39,9 @@ public class OnCommand implements Listener {
                 event.setCancelled(true);
             }
 
-            logger.info("Processed command from " + player.getName() + ": " + event.getMessage());
+            cloudLogger.debug("Processed command from " + player.getName() + ": " + event.getMessage());
         } catch (Exception e) {
-            logger.severe("Error processing command event: " + e.getMessage());
+            cloudLogger.error("Error processing command event: " + e.getMessage());
             e.printStackTrace();
         }
     }

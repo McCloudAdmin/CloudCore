@@ -1,6 +1,8 @@
 package systems.mythical.cloudcore.console;
 
 import systems.mythical.cloudcore.database.DatabaseManager;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,11 +14,11 @@ import java.util.logging.Logger;
 public class ConsoleExecutorManager {
     private static ConsoleExecutorManager instance;
     private final DatabaseManager databaseManager;
-    private final Logger logger;
+    private final CloudLogger cloudLogger;
 
-    private ConsoleExecutorManager(DatabaseManager databaseManager, Logger logger) {
+    private ConsoleExecutorManager(DatabaseManager databaseManager, Logger platformLogger) {
         this.databaseManager = databaseManager;
-        this.logger = logger;
+        this.cloudLogger = CloudLoggerFactory.get();
     }
 
     public static ConsoleExecutorManager getInstance(DatabaseManager databaseManager, Logger logger) {
@@ -42,7 +44,7 @@ public class ConsoleExecutorManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error checking console executor status for " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error checking console executor status for " + uuid + ": " + e.getMessage());
             return false;
         }
     }
@@ -65,7 +67,7 @@ public class ConsoleExecutorManager {
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Error checking console executor status for " + displayName + ": " + e.getMessage());
+            cloudLogger.error("Error checking console executor status for " + displayName + ": " + e.getMessage());
             return false;
         }
     }
@@ -82,11 +84,11 @@ public class ConsoleExecutorManager {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 stmt.executeUpdate();
-                logger.info("Added console executor: " + uuid);
+                cloudLogger.info("Added console executor: " + uuid);
                 return true;
             }
         } catch (SQLException e) {
-            logger.severe("Error adding console executor " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error adding console executor " + uuid + ": " + e.getMessage());
             return false;
         }
     }
@@ -103,11 +105,11 @@ public class ConsoleExecutorManager {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 stmt.executeUpdate();
-                logger.info("Removed console executor: " + uuid);
+                cloudLogger.info("Removed console executor: " + uuid);
                 return true;
             }
         } catch (SQLException e) {
-            logger.severe("Error removing console executor " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error removing console executor " + uuid + ": " + e.getMessage());
             return false;
         }
     }
@@ -124,11 +126,11 @@ public class ConsoleExecutorManager {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 stmt.executeUpdate();
-                logger.info("Locked console executor: " + uuid);
+                cloudLogger.info("Locked console executor: " + uuid);
                 return true;
             }
         } catch (SQLException e) {
-            logger.severe("Error locking console executor " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error locking console executor " + uuid + ": " + e.getMessage());
             return false;
         }
     }
@@ -145,11 +147,11 @@ public class ConsoleExecutorManager {
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, uuid.toString());
                 stmt.executeUpdate();
-                logger.info("Unlocked console executor: " + uuid);
+                cloudLogger.info("Unlocked console executor: " + uuid);
                 return true;
             }
         } catch (SQLException e) {
-            logger.severe("Error unlocking console executor " + uuid + ": " + e.getMessage());
+            cloudLogger.error("Error unlocking console executor " + uuid + ": " + e.getMessage());
             return false;
         }
     }

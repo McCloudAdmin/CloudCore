@@ -45,21 +45,16 @@ public class ChatlogCommand extends Command implements TabExecutor {
     @SuppressWarnings("deprecation")
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (sender instanceof ProxiedPlayer) {
-            ProxiedPlayer player = (ProxiedPlayer) sender;
-            UUID uuid = player.getUniqueId();
-            long now = System.currentTimeMillis();
-            Long lastUsed = cooldowns.get(uuid);
-            if (lastUsed != null && (now - lastUsed) < COOLDOWN_MILLIS) {
-                long secondsLeft = (COOLDOWN_MILLIS - (now - lastUsed)) / 1000;
-                sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.CHATLOG_COOLDOWN, secondsLeft)));
-                return;
-            }
-            cooldowns.put(uuid, now);
-            if (!player.hasPermission(Permissions.CHATLOG_COMMAND)) {
-                sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.ADMIN_NO_PERMISSION)));
-                return;
-            }
+        if (!(sender instanceof ProxiedPlayer)) {
+            sender.sendMessage(TextComponent.fromLegacyText("§cOnly players can use this command."));
+            return;
+        }
+        ProxiedPlayer player = (ProxiedPlayer) sender;
+        UUID uuid = player.getUniqueId();
+
+        if (!player.hasPermission(Permissions.CHATLOG_COMMAND)) {
+            sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.ADMIN_NO_PERMISSION)));
+            return;
         }
         if (args.length != 1) {
             sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.CHATLOG_USAGE)));
@@ -68,10 +63,19 @@ public class ChatlogCommand extends Command implements TabExecutor {
 
         String targetName = args[0];
         Optional<User> userOpt = userManager.getUserByUsername(targetName);
-        Optional<User> senderOpt = userManager.getUserByUuid(((ProxiedPlayer) sender).getUniqueId());
+        Optional<User> senderOpt = userManager.getUserByUuid(uuid);
         
         if (userOpt.isEmpty()) {
             sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.CHATLOG_NOT_FOUND)));
+            return;
+        }
+
+        // Check cooldown only right before actually creating a chatlog
+        long now = System.currentTimeMillis();
+        Long lastUsed = cooldowns.get(uuid);
+        if (lastUsed != null && (now - lastUsed) < COOLDOWN_MILLIS) {
+            long secondsLeft = (COOLDOWN_MILLIS - (now - lastUsed)) / 1000;
+            sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.CHATLOG_COOLDOWN, secondsLeft)));
             return;
         }
 
@@ -83,6 +87,9 @@ public class ChatlogCommand extends Command implements TabExecutor {
             sender.sendMessage(TextComponent.fromLegacyText(messageManager.getColoredMessage(Messages.CHATLOG_NO_MESSAGES)));
             return;
         }
+
+        // Only set cooldown after a successful chatlog creation
+        cooldowns.put(uuid, now);
 
         String chatlogUrl = cloudSettings.getSetting(Settings.GLOBAL_APP_URL) + "/chatlog/" + chatLog.getId();
 
@@ -104,10 +111,15 @@ public class ChatlogCommand extends Command implements TabExecutor {
         List<String> suggestions = new ArrayList<>();
         if (args.length == 1) {
             String partialName = args[0].toLowerCase();
-            for (User user : userManager.getAllUsers()) {
-                if (user.getUsername().toLowerCase().startsWith(partialName)) {
-                    suggestions.add(user.getUsername());
-                }
+            if (sender instanceof ProxiedPlayer) {
+                ProxiedPlayer player = (ProxiedPlayer) sender;
+                // Players connected to the same server as the command sender
+                player.getServer().getInfo().getPlayers().forEach(p -> {
+                    String name = p.getName();
+                    if (name != null && name.toLowerCase().startsWith(partialName)) {
+                        suggestions.add(name);
+                    }
+                });
             }
         }
         return suggestions;

@@ -5,10 +5,14 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.command.CommandExecuteEvent;
 import com.velocitypowered.api.proxy.Player;
 
-import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLogger;
 
 public class OnCommand {
-    private static final Logger logger = Logger.getLogger(OnCommand.class.getName());
+    private final CloudLogger cloudLogger;
+
+    public OnCommand(CloudLogger cloudLogger) {
+        this.cloudLogger = cloudLogger;
+    }
 
     @Subscribe(order = PostOrder.NORMAL)
     public void onCommand(CommandExecuteEvent event) {
@@ -33,9 +37,9 @@ public class OnCommand {
                 event.setResult(CommandExecuteEvent.CommandResult.denied());
             }
 
-            logger.info("Processed command from " + player.getUsername() + ": /" + event.getCommand());
+            cloudLogger.debug("Processed command from " + player.getUsername() + ": /" + event.getCommand());
         } catch (Exception e) {
-            logger.severe("Error processing command event: " + e.getMessage());
+            cloudLogger.error("Error processing command event: " + e.getMessage());
             e.printStackTrace();
         }
     }

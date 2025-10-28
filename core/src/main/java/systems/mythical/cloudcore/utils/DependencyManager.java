@@ -6,11 +6,11 @@ import java.util.logging.Logger;
 import java.util.concurrent.CompletableFuture;
 
 public class DependencyManager {
-    private final Logger logger;
     private final Path pluginsFolder;
     private final Platform platform;
     private final DownloadManager downloadManager;
     private final Map<String, Dependency> dependencies;
+    private final CloudLogger cloudLogger = CloudLoggerFactory.get();
 
     public enum Platform {
         VELOCITY,
@@ -91,7 +91,6 @@ public class DependencyManager {
     }
 
     public DependencyManager(Logger logger, Path pluginsFolder, Platform platform) {
-        this.logger = logger;
         this.pluginsFolder = pluginsFolder;
         this.platform = platform;
         this.downloadManager = new DownloadManager(logger);
@@ -100,18 +99,60 @@ public class DependencyManager {
     }
 
     private void initializeDependencies() {
-        // LuckPerms dependency with platform-specific URLs
+        // LuckPerms dependency with dynamic URL and version support.
+        // The URL is now constructed using the version number in the path and filename,
+        // and DependencyManager will always use the version provided below.
+        // To update, just change the version in this method.
+        final String luckPermsVersion = "5.5.17";
+        final String baseDownloadUrl = "https://download.luckperms.net/";
+
+        String platformPath;
+        String fileName;
+
+        switch (platform) {
+            case VELOCITY:
+                platformPath = String.format("%s/velocity", getLuckPermsBuildNumber(luckPermsVersion));
+                fileName = String.format("LuckPerms-Velocity-%s.jar", luckPermsVersion);
+                break;
+            case BUNGEECORD:
+                platformPath = String.format("%s/bungee/loader", getLuckPermsBuildNumber(luckPermsVersion));
+                fileName = String.format("LuckPerms-Bungee-%s.jar", luckPermsVersion);
+                break;
+            case SPIGOT:
+            default:
+                platformPath = String.format("%s/bukkit/loader", getLuckPermsBuildNumber(luckPermsVersion));
+                fileName = String.format("LuckPerms-Bukkit-%s.jar", luckPermsVersion);
+                break;
+        }
+
+        String fullUrl = String.format("%s%s/%s", baseDownloadUrl, platformPath, fileName);
+
         dependencies.put("LuckPerms", new Dependency.Builder("LuckPerms")
-            .version("5.5.0")
-            .url(platform == Platform.VELOCITY 
-                ? "https://download.luckperms.net/1584/velocity/LuckPerms-Velocity-5.5.0.jar"
-                : platform == Platform.BUNGEECORD 
-                    ? "https://download.luckperms.net/1584/bungee/loader/LuckPerms-Bungee-5.5.0.jar" : "https://download.luckperms.net/1584/bukkit/loader/LuckPerms-Bukkit-5.5.0.jar")
+            .version(luckPermsVersion)
+            .url(fullUrl)
             .required(true)
             .supportedPlatforms(Platform.VELOCITY, Platform.BUNGEECORD, Platform.SPIGOT)
             .build());
 
         // Add more dependencies here as needed
+    }
+
+    /**
+     * Returns the LuckPerms build number for the given version.
+     * This mapping should be updated as new versions come out.
+     * This is necessary because the download.luckperms.net URL is version/build-number specific.
+     */
+    private String getLuckPermsBuildNumber(String version) {
+        // These build numbers must be kept up-to-date
+        switch (version) {
+            case "5.5.17": return "1606";
+            case "5.5.0": return "1584";
+            // Add more version <-> build mapping here as newer releases come out.
+            // E.g.: case "5.4.109": return "1490";
+            default:
+                cloudLogger.warn("Unknown LuckPerms version: " + version + ". Using latest known build (1606). Update getLuckPermsBuildNumber()!");
+                return "1606";
+        }
     }
 
     public CompletableFuture<Boolean> checkAndDownloadDependencies() {
@@ -130,7 +171,7 @@ public class DependencyManager {
             return success;
         }).whenComplete((result, ex) -> {
             if (ex != null) {
-                logger.severe("Error checking dependencies: " + ex.getMessage());
+                cloudLogger.error("Error checking dependencies: " + ex.getMessage());
                 ex.printStackTrace();
             }
             downloadManager.shutdown();
@@ -152,13 +193,13 @@ public class DependencyManager {
                 )
             );
 
-            logger.info("Downloading " + dependency.getName() + " for " + platform.name() + "...");
+            cloudLogger.info("Downloading " + dependency.getName() + " for " + platform.name() + "...");
             
             downloadManager.downloadFile(
                 formattedUrl,
                 targetPath.toString(),
                 dependency.getChecksum(),
-                progress -> logger.info(String.format(
+                progress -> cloudLogger.debug(String.format(
                     "Downloading %s: %.1f%% (%.2f MB/s, %d seconds remaining)",
                     dependency.getName(),
                     progress.getProgress(),
@@ -167,10 +208,10 @@ public class DependencyManager {
                 ))
             );
 
-            logger.info("Successfully downloaded " + dependency.getName());
+            cloudLogger.info("Successfully downloaded " + dependency.getName());
             return true;
         } catch (Exception e) {
-            logger.severe("Failed to download " + dependency.getName() + ": " + e.getMessage());
+            cloudLogger.error("Failed to download " + dependency.getName() + ": " + e.getMessage());
             e.printStackTrace();
             return false;
         }

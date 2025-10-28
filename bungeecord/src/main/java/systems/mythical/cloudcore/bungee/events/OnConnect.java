@@ -25,10 +25,12 @@ import net.md_5.bungee.api.chat.TextComponent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import systems.mythical.cloudcore.utils.CloudLoggerFactory;
+import systems.mythical.cloudcore.utils.CloudLogger;
 import java.net.InetSocketAddress;
 
 public class OnConnect implements Listener {
-    private static final Logger logger = Logger.getLogger(OnConnect.class.getName());
+    private static final CloudLogger cloudLogger = CloudLoggerFactory.get();
     private final DatabaseManager databaseManager;
     private final Logger pluginLogger;
     private final WebPanelPermissionManager webPanelPermissionManager;
@@ -50,7 +52,7 @@ public class OnConnect implements Listener {
                 // Fallback to direct IP if socket address fails
                 String fallbackIp = event.getPlayer().getAddress().getAddress().getHostAddress();
                 ip = fallbackIp;
-                logger.warning("Using fallback IP method for player: " + event.getPlayer().getName());
+                cloudLogger.warn("Using fallback IP method for player: " + event.getPlayer().getName());
             }
 
             // LuckPerms group name
@@ -76,7 +78,7 @@ public class OnConnect implements Listener {
             if (maintenanceEnabled && !MaintenanceSystemCommand.isInMaintenance(event.getPlayer().getUniqueId())) {
                 String kickMsg = messageManager.getColoredMessage(Messages.CONNECTION_BLOCKED_MAINTENANCE);
                 event.getPlayer().disconnect(TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', kickMsg)));
-                pluginLogger.info("Kicked " + event.getPlayer().getName() + " due to maintenance mode.");
+                cloudLogger.info("Kicked " + event.getPlayer().getName() + " due to maintenance mode.");
                 return;
             }
 
@@ -107,7 +109,7 @@ public class OnConnect implements Listener {
 
             // Update the web panel permissions in the database
             webPanelPermissionManager.updateUserPermissions(event.getPlayer().getUniqueId(), webPanelPermissions, negativePermissions);
-            pluginLogger.info("Updated web panel permissions for user " + event.getPlayer().getName() + " on join");
+            cloudLogger.debug("Updated web panel permissions for user " + event.getPlayer().getName() + " on join");
 
             JoinEvent.onPlayerJoin(
                 event.getPlayer().getName(),
@@ -118,9 +120,9 @@ public class OnConnect implements Listener {
                 serverName,
                 groupName
             );
-            logger.info("Processed join event for player: " + event.getPlayer().getName() + " with group: " + groupName);
+            cloudLogger.debug("Processed join event for player: " + event.getPlayer().getName() + " with group: " + groupName);
         } catch (Exception e) {
-            logger.severe("Error processing join event: " + e.getMessage());
+            cloudLogger.error("Error processing join event: " + e.getMessage());
             e.printStackTrace();
         }
     }

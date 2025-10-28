@@ -26,4 +26,4 @@ public class MaintenanceSystemCommand {
         if (maintenanceManager == null) return false;
         return maintenanceManager.removeMaintenance(uuid);
     }
-} 
+}

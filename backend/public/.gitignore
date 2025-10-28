@@ -1,0 +1,10 @@
+/attachments/tickets/
+/attachments/announcements/
+/attachments/images/
+/attachments/imgs/
+/attachments/*.png
+/attachments/*.jpg
+/attachments/*.webp
+/attachments/avatars/*.png
+/attachments/avatars/*.jpg
+/attachments/avatars/*.webp

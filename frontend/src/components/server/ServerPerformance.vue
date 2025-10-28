@@ -1,0 +1,303 @@
+<template>
+    <div class="grid gap-4" :class="gridColsClass">
+        <Card v-if="showCpu !== false" class="relative overflow-hidden">
+            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle class="text-sm font-medium text-gray-900 dark:text-white">{{
+                    t('serverConsole.cpuLoad')
+                }}</CardTitle>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <Cpu class="h-4 w-4 text-muted-foreground" />
+                </div>
+            </CardHeader>
+            <CardContent class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-muted-foreground">Limit: {{ server?.cpu || 0 }}%</span>
+                    <span class="text-xs font-medium text-red-600 dark:text-red-400"
+                        >{{ getCurrentValue(cpuData) }}%</span
+                    >
+                </div>
+                <div class="w-full h-20">
+                    <PerformanceChart
+                        :data="cpuData"
+                        :color="dataColors.cpu"
+                        unit="%"
+                        :max-value="server?.cpu || 100"
+                    />
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card v-if="showMemory !== false" class="relative overflow-hidden">
+            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle class="text-sm font-medium text-gray-900 dark:text-white">{{
+                    t('serverConsole.memory')
+                }}</CardTitle>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <MemoryStick class="h-4 w-4 text-muted-foreground" />
+                </div>
+            </CardHeader>
+            <CardContent class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-muted-foreground">Limit: {{ formatMemory(server?.memory || 0) }}</span>
+                    <span class="text-xs font-medium text-blue-600 dark:text-blue-400"
+                        >{{ getCurrentValue(memoryData) }} MiB</span
+                    >
+                </div>
+                <div class="w-full h-20">
+                    <PerformanceChart
+                        :data="memoryData"
+                        :color="dataColors.memory"
+                        unit="MiB"
+                        :max-value="server?.memory || 100"
+                    />
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card v-if="showDisk !== false" class="relative overflow-hidden">
+            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle class="text-sm font-medium text-gray-900 dark:text-white">{{
+                    t('serverConsole.disk')
+                }}</CardTitle>
+                <div class="flex items-center gap-2">
+                    <div :class="getDiskStatusColor()" class="w-2 h-2 rounded-full animate-pulse"></div>
+                    <HardDrive class="h-4 w-4 text-muted-foreground" />
+                </div>
+            </CardHeader>
+            <CardContent class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex flex-col">
+                        <span class="text-xs text-muted-foreground">
+                            Limit: {{ formatDisk(server?.disk || 0) }}
+                            <span v-if="server?.disk === 0" class="text-yellow-500">(unlimited)</span>
+                            <span v-else-if="getDiskUsagePercentage() > 95" class="text-red-500">(critical!)</span>
+                            <span v-else-if="getDiskUsagePercentage() > 80" class="text-yellow-500">(warning)</span>
+                        </span>
+                    </div>
+                    <span class="text-xs font-medium" :class="getDiskValueColor()"
+                        >{{ getCurrentValue(diskData) }} MiB</span
+                    >
+                </div>
+                <div class="w-full h-20">
+                    <PerformanceChart
+                        :data="diskData"
+                        :color="getDiskChartColor()"
+                        unit="MiB"
+                        :max-value="server?.disk || 100"
+                    />
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card v-if="showNetwork !== false" class="relative overflow-hidden">
+            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle class="text-sm font-medium text-gray-900 dark:text-white">{{
+                    t('serverConsole.network')
+                }}</CardTitle>
+                <div class="flex items-center gap-2">
+                    <div class="flex gap-1">
+                        <div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <Globe class="h-4 w-4 text-muted-foreground" />
+                </div>
+            </CardHeader>
+            <CardContent class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex gap-4 text-xs text-muted-foreground">
+                        <span class="flex items-center gap-1">
+                            <span class="w-1 h-1 bg-yellow-500 rounded-full"></span>
+                            ↑ {{ networkStats.upload }}
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
+                            ↓ {{ networkStats.download }}
+                        </span>
+                    </div>
+                    <span class="text-xs font-medium text-orange-600 dark:text-orange-400">{{
+                        getCurrentValue(networkData)
+                    }}</span>
+                </div>
+                <div class="w-full h-20">
+                    <PerformanceChart :data="networkData" :color="dataColors.network" unit="B" />
+                </div>
+            </CardContent>
+        </Card>
+    </div>
+</template>
+
+<script setup lang="ts">
+// MIT License
+//
+// Copyright (c) 2025 MythicalSystems
+// Copyright (c) 2025 Cassian Gherman (NaysKutzu)
+// Copyright (c) 2018 - 2021 Dane Everitt <dane@daneeveritt.com> and Contributors
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import { computed } from 'vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Cpu, MemoryStick, HardDrive, Globe } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+import PerformanceChart from '@/components/charts/PerformanceChart.vue';
+import type { Server, NetworkStats } from '@/types/server';
+
+const { t } = useI18n();
+
+interface Props {
+    server: Server | null;
+    cpuData: Array<{ timestamp: number; value: number }>;
+    memoryData: Array<{ timestamp: number; value: number }>;
+    diskData: Array<{ timestamp: number; value: number }>;
+    networkData: Array<{ timestamp: number; value: number }>;
+    networkStats: NetworkStats;
+    showCpu?: boolean;
+    showMemory?: boolean;
+    showDisk?: boolean;
+    showNetwork?: boolean;
+}
+
+const props = defineProps<Props>();
+
+// Compute grid columns based on visible charts with better responsive design
+const gridColsClass = computed(() => {
+    const visibleCharts = [
+        props.showCpu !== false,
+        props.showMemory !== false,
+        props.showDisk !== false,
+        props.showNetwork !== false,
+    ].filter(Boolean).length;
+
+    if (visibleCharts === 1) return 'grid-cols-1';
+    if (visibleCharts === 2) return 'grid-cols-1 sm:grid-cols-2';
+    if (visibleCharts === 3) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+    return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
+});
+
+const dataColors = {
+    cpu: '#ef4444',
+    memory: '#3b82f6',
+    disk: '#10b981',
+    network: '#f59e0b',
+};
+
+function formatMemory(memory: number): string {
+    if (memory >= 1024) {
+        return `${(memory / 1024).toFixed(1)} GiB`;
+    }
+    return `${memory} MiB`;
+}
+
+function formatDisk(disk: number): string {
+    if (disk >= 1024) {
+        return `${(disk / 1024).toFixed(1)} GiB`;
+    }
+    return `${disk} MiB`;
+}
+
+function getDiskUsagePercentage(): number {
+    const diskLimit = props.server?.disk || 0;
+    const currentUsage = props.server?.diskUsage || 0;
+
+    if (diskLimit === 0) return 0; // Unlimited disk
+
+    return (currentUsage / diskLimit) * 100;
+}
+
+function getDiskChartColor(): string {
+    const usagePercentage = getDiskUsagePercentage();
+
+    if (usagePercentage > 95) return '#ef4444'; // Red for critical
+    if (usagePercentage > 80) return '#f59e0b'; // Yellow for warning
+    return '#10b981'; // Green for normal
+}
+
+function getDiskStatusColor(): string {
+    const usagePercentage = getDiskUsagePercentage();
+
+    if (usagePercentage > 95) return 'bg-red-500'; // Red for critical
+    if (usagePercentage > 80) return 'bg-yellow-500'; // Yellow for warning
+    return 'bg-green-500'; // Green for normal
+}
+
+function getDiskValueColor(): string {
+    const usagePercentage = getDiskUsagePercentage();
+
+    if (usagePercentage > 95) return 'text-red-600 dark:text-red-400'; // Red for critical
+    if (usagePercentage > 80) return 'text-yellow-600 dark:text-yellow-400'; // Yellow for warning
+    return 'text-green-600 dark:text-green-400'; // Green for normal
+}
+
+function getCurrentValue(data: Array<{ timestamp: number; value: number }>): string {
+    if (data.length === 0) return '0';
+    const lastValue = data[data.length - 1];
+    if (!lastValue) return '0';
+
+    if (lastValue.value >= 1024 * 1024 * 1024) {
+        return (lastValue.value / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+    } else if (lastValue.value >= 1024 * 1024) {
+        return (lastValue.value / (1024 * 1024)).toFixed(1) + ' MB';
+    } else if (lastValue.value >= 1024) {
+        return (lastValue.value / 1024).toFixed(1) + ' KB';
+    }
+    return lastValue.value.toFixed(1);
+}
+</script>
+
+<style scoped>
+/* Card hover effects */
+.relative:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Pulse animation for status indicators */
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Chart container styling */
+.w-full.h-20 {
+    min-height: 80px;
+    position: relative;
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+    .text-xs {
+        font-size: 0.75rem;
+    }
+
+    .text-sm {
+        font-size: 0.875rem;
+    }
+}
+</style>

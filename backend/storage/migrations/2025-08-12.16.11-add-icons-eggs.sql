@@ -1,0 +1,1 @@
+ALTER TABLE `featherpanel_spells` ADD COLUMN `banner` VARCHAR(255) NOT NULL DEFAULT 'https://cdn.mythical.systems/mc.jpg';

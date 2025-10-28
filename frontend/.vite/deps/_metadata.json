@@ -1,0 +1,361 @@
+{
+  "hash": "e3c02545",
+  "configHash": "4e5727a8",
+  "lockfileHash": "f7830388",
+  "browserHash": "65c14e03",
+  "optimized": {
+    "vue": {
+      "src": "../../node_modules/.pnpm/vue@3.5.22_typescript@5.9.3/node_modules/vue/dist/vue.runtime.esm-bundler.js",
+      "file": "vue.js",
+      "fileHash": "5365407e",
+      "needsInterop": false
+    },
+    "vue-router": {
+      "src": "../../node_modules/.pnpm/vue-router@4.6.3_vue@3.5.22_typescript@5.9.3_/node_modules/vue-router/dist/vue-router.mjs",
+      "file": "vue-router.js",
+      "fileHash": "6a857b61",
+      "needsInterop": false
+    },
+    "pinia": {
+      "src": "../../node_modules/.pnpm/pinia@3.0.3_typescript@5.9.3_vue@3.5.22_typescript@5.9.3_/node_modules/pinia/dist/pinia.mjs",
+      "file": "pinia.js",
+      "fileHash": "b8b60555",
+      "needsInterop": false
+    },
+    "vue-i18n": {
+      "src": "../../node_modules/.pnpm/vue-i18n@11.1.12_vue@3.5.22_typescript@5.9.3_/node_modules/vue-i18n/dist/vue-i18n.mjs",
+      "file": "vue-i18n.js",
+      "fileHash": "ace1c431",
+      "needsInterop": false
+    },
+    "@vueuse/core": {
+      "src": "../../node_modules/.pnpm/@vueuse+core@14.0.0_vue@3.5.22_typescript@5.9.3_/node_modules/@vueuse/core/dist/index.js",
+      "file": "@vueuse_core.js",
+      "fileHash": "d665ffcc",
+      "needsInterop": false
+    },
+    "@xterm/addon-fit": {
+      "src": "../../node_modules/.pnpm/@xterm+addon-fit@0.10.0_@xterm+xterm@5.5.0/node_modules/@xterm/addon-fit/lib/addon-fit.js",
+      "file": "@xterm_addon-fit.js",
+      "fileHash": "cac453b4",
+      "needsInterop": true
+    },
+    "@xterm/addon-web-links": {
+      "src": "../../node_modules/.pnpm/@xterm+addon-web-links@0.11.0_@xterm+xterm@5.5.0/node_modules/@xterm/addon-web-links/lib/addon-web-links.js",
+      "file": "@xterm_addon-web-links.js",
+      "fileHash": "01dde615",
+      "needsInterop": true
+    },
+    "@xterm/xterm": {
+      "src": "../../node_modules/.pnpm/@xterm+xterm@5.5.0/node_modules/@xterm/xterm/lib/xterm.js",
+      "file": "@xterm_xterm.js",
+      "fileHash": "fc56fd2b",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/ext-searchbox": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/ext-searchbox.js",
+      "file": "ace-builds_src-noconflict_ext-searchbox.js",
+      "fileHash": "6d468139",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-c_cpp": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-c_cpp.js",
+      "file": "ace-builds_src-noconflict_mode-c_cpp.js",
+      "fileHash": "c7d06b1d",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-css": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-css.js",
+      "file": "ace-builds_src-noconflict_mode-css.js",
+      "fileHash": "040bfd8f",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-dockerfile": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-dockerfile.js",
+      "file": "ace-builds_src-noconflict_mode-dockerfile.js",
+      "fileHash": "b2fdf78b",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-golang": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-golang.js",
+      "file": "ace-builds_src-noconflict_mode-golang.js",
+      "fileHash": "d79cc148",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-html": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-html.js",
+      "file": "ace-builds_src-noconflict_mode-html.js",
+      "fileHash": "bc3a2004",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-ini": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-ini.js",
+      "file": "ace-builds_src-noconflict_mode-ini.js",
+      "fileHash": "1fd0f951",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-java": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-java.js",
+      "file": "ace-builds_src-noconflict_mode-java.js",
+      "fileHash": "c2fb0bb2",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-javascript": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-javascript.js",
+      "file": "ace-builds_src-noconflict_mode-javascript.js",
+      "fileHash": "a3501e11",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-json": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-json.js",
+      "file": "ace-builds_src-noconflict_mode-json.js",
+      "fileHash": "7bc406ba",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-kotlin": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-kotlin.js",
+      "file": "ace-builds_src-noconflict_mode-kotlin.js",
+      "fileHash": "43011dd5",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-markdown": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-markdown.js",
+      "file": "ace-builds_src-noconflict_mode-markdown.js",
+      "fileHash": "30b4cc15",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-php": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-php.js",
+      "file": "ace-builds_src-noconflict_mode-php.js",
+      "fileHash": "c2bb6c5c",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-python": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-python.js",
+      "file": "ace-builds_src-noconflict_mode-python.js",
+      "fileHash": "ee0d94f0",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-ruby": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-ruby.js",
+      "file": "ace-builds_src-noconflict_mode-ruby.js",
+      "fileHash": "145df22c",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-rust": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-rust.js",
+      "file": "ace-builds_src-noconflict_mode-rust.js",
+      "fileHash": "d8177cd0",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-scala": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-scala.js",
+      "file": "ace-builds_src-noconflict_mode-scala.js",
+      "fileHash": "c3f0b05a",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-scss": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-scss.js",
+      "file": "ace-builds_src-noconflict_mode-scss.js",
+      "fileHash": "cd36297b",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-sh": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-sh.js",
+      "file": "ace-builds_src-noconflict_mode-sh.js",
+      "fileHash": "4fc6c8e4",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-sql": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-sql.js",
+      "file": "ace-builds_src-noconflict_mode-sql.js",
+      "fileHash": "cf120418",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-swift": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-swift.js",
+      "file": "ace-builds_src-noconflict_mode-swift.js",
+      "fileHash": "fa2ab10f",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-text": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-text.js",
+      "file": "ace-builds_src-noconflict_mode-text.js",
+      "fileHash": "33eee88b",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-typescript": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-typescript.js",
+      "file": "ace-builds_src-noconflict_mode-typescript.js",
+      "fileHash": "c0201ed4",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-vue": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-vue.js",
+      "file": "ace-builds_src-noconflict_mode-vue.js",
+      "fileHash": "573b5a40",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-xml": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-xml.js",
+      "file": "ace-builds_src-noconflict_mode-xml.js",
+      "fileHash": "48307248",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/mode-yaml": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/mode-yaml.js",
+      "file": "ace-builds_src-noconflict_mode-yaml.js",
+      "fileHash": "d7e48378",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/theme-chrome": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/theme-chrome.js",
+      "file": "ace-builds_src-noconflict_theme-chrome.js",
+      "fileHash": "5c4779ab",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/theme-github": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/theme-github.js",
+      "file": "ace-builds_src-noconflict_theme-github.js",
+      "fileHash": "63e6446c",
+      "needsInterop": true
+    },
+    "ace-builds/src-noconflict/theme-monokai": {
+      "src": "../../node_modules/.pnpm/ace-builds@1.43.4/node_modules/ace-builds/src-noconflict/theme-monokai.js",
+      "file": "ace-builds_src-noconflict_theme-monokai.js",
+      "fileHash": "21b685a1",
+      "needsInterop": true
+    },
+    "ansi-to-html": {
+      "src": "../../node_modules/.pnpm/ansi-to-html@0.7.2/node_modules/ansi-to-html/lib/ansi_to_html.js",
+      "file": "ansi-to-html.js",
+      "fileHash": "88f12640",
+      "needsInterop": true
+    },
+    "axios": {
+      "src": "../../node_modules/.pnpm/axios@1.12.2/node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "e22761e5",
+      "needsInterop": false
+    },
+    "chart.js": {
+      "src": "../../node_modules/.pnpm/chart.js@4.5.1/node_modules/chart.js/dist/chart.js",
+      "file": "chart__js.js",
+      "fileHash": "2865bfc5",
+      "needsInterop": false
+    },
+    "class-variance-authority": {
+      "src": "../../node_modules/.pnpm/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/index.mjs",
+      "file": "class-variance-authority.js",
+      "fileHash": "55e4097c",
+      "needsInterop": false
+    },
+    "clsx": {
+      "src": "../../node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs",
+      "file": "clsx.js",
+      "fileHash": "4bcb0846",
+      "needsInterop": false
+    },
+    "js-cookie": {
+      "src": "../../node_modules/.pnpm/js-cookie@3.0.5/node_modules/js-cookie/dist/js.cookie.mjs",
+      "file": "js-cookie.js",
+      "fileHash": "5e6b4cc8",
+      "needsInterop": false
+    },
+    "lucide-vue-next": {
+      "src": "../../node_modules/.pnpm/lucide-vue-next@0.547.0_vue@3.5.22_typescript@5.9.3_/node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js",
+      "file": "lucide-vue-next.js",
+      "fileHash": "bfd9b974",
+      "needsInterop": false
+    },
+    "reka-ui": {
+      "src": "../../node_modules/.pnpm/reka-ui@2.6.0_typescript@5.9.3_vue@3.5.22_typescript@5.9.3_/node_modules/reka-ui/dist/index.js",
+      "file": "reka-ui.js",
+      "fileHash": "c2e104ba",
+      "needsInterop": false
+    },
+    "tailwind-merge": {
+      "src": "../../node_modules/.pnpm/tailwind-merge@3.3.1/node_modules/tailwind-merge/dist/bundle-mjs.mjs",
+      "file": "tailwind-merge.js",
+      "fileHash": "9e8c5cfd",
+      "needsInterop": false
+    },
+    "vaul-vue": {
+      "src": "../../node_modules/.pnpm/vaul-vue@0.4.1_reka-ui@2.6.0_typescript@5.9.3_vue@3.5.22_typescript@5.9.3___vue@3.5.22_typescript@5.9.3_/node_modules/vaul-vue/dist/index.js",
+      "file": "vaul-vue.js",
+      "fileHash": "40c9179f",
+      "needsInterop": false
+    },
+    "vee-validate": {
+      "src": "../../node_modules/.pnpm/vee-validate@4.15.1_vue@3.5.22_typescript@5.9.3_/node_modules/vee-validate/dist/vee-validate.mjs",
+      "file": "vee-validate.js",
+      "fileHash": "239368e1",
+      "needsInterop": false
+    },
+    "vue-chartjs": {
+      "src": "../../node_modules/.pnpm/vue-chartjs@5.3.2_chart.js@4.5.1_vue@3.5.22_typescript@5.9.3_/node_modules/vue-chartjs/dist/index.js",
+      "file": "vue-chartjs.js",
+      "fileHash": "003c6a56",
+      "needsInterop": false
+    },
+    "vue-qrcode": {
+      "src": "../../node_modules/.pnpm/vue-qrcode@2.2.2_qrcode@1.5.4_vue@3.5.22_typescript@5.9.3_/node_modules/vue-qrcode/lib/index.esm.mjs",
+      "file": "vue-qrcode.js",
+      "fileHash": "38eeb522",
+      "needsInterop": false
+    },
+    "vue-toastification": {
+      "src": "../../node_modules/.pnpm/vue-toastification@2.0.0-rc.5_vue@3.5.22_typescript@5.9.3_/node_modules/vue-toastification/dist/index.mjs",
+      "file": "vue-toastification.js",
+      "fileHash": "628afbf0",
+      "needsInterop": false
+    },
+    "vue-turnstile": {
+      "src": "../../node_modules/.pnpm/vue-turnstile@1.0.11_vue@3.5.22_typescript@5.9.3_/node_modules/vue-turnstile/dist/vue-turnstile.js",
+      "file": "vue-turnstile.js",
+      "fileHash": "f890e129",
+      "needsInterop": false
+    },
+    "vue3-ace-editor": {
+      "src": "../../node_modules/.pnpm/vue3-ace-editor@2.2.4_ace-builds@1.43.4_vue@3.5.22_typescript@5.9.3_/node_modules/vue3-ace-editor/index.js",
+      "file": "vue3-ace-editor.js",
+      "fileHash": "ea582fa8",
+      "needsInterop": false
+    },
+    "vuedraggable": {
+      "src": "../../node_modules/.pnpm/vuedraggable@4.1.0_vue@3.5.22_typescript@5.9.3_/node_modules/vuedraggable/dist/vuedraggable.umd.js",
+      "file": "vuedraggable.js",
+      "fileHash": "61e40176",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "dist-7FHRUEOH": {
+      "file": "dist-7FHRUEOH.js"
+    },
+    "chunk-T6NFIXSH": {
+      "file": "chunk-T6NFIXSH.js"
+    },
+    "chunk-7AODTDOM": {
+      "file": "chunk-7AODTDOM.js"
+    },
+    "chunk-6SD27EE3": {
+      "file": "chunk-6SD27EE3.js"
+    },
+    "chunk-Z5IOLULF": {
+      "file": "chunk-Z5IOLULF.js"
+    },
+    "chunk-BPR5FKHA": {
+      "file": "chunk-BPR5FKHA.js"
+    },
+    "chunk-TQKFIP6A": {
+      "file": "chunk-TQKFIP6A.js"
+    },
+    "chunk-SLKY347R": {
+      "file": "chunk-SLKY347R.js"
+    },
+    "chunk-V4OQ3NZ2": {
+      "file": "chunk-V4OQ3NZ2.js"
+    }
+  }
+}

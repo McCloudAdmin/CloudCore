@@ -1,0 +1,1 @@
+ALTER TABLE `featherpanel_settings` ADD UNIQUE (`name`);

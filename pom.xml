@@ -38,7 +38,7 @@
             <dependency>
                 <groupId>com.velocitypowered</groupId>
                 <artifactId>velocity-api</artifactId>
-                <version>3.4.0-SNAPSHOT</version>
+                <version>3.5.0-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -78,20 +78,16 @@
 
     <repositories>
         <repository>
+            <id>z-jitpack</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
-            <id>velocity</id>
-            <url>https://repo.velocitypowered.com/releases/</url>
-        </repository>
-        <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
         </repository>
         <repository>
             <id>placeholderapi</id>
@@ -114,13 +110,18 @@
             <url>https://repo.essentialsx.net/releases/</url>
         </repository>
         <repository>
-            <id>andrei1058-repo</id>
-            <url>https://repo.andrei1058.dev/releases/</url>
-        </repository>
+            <id>andrei1058-repository-snapshots</id>
+            <name>andrei1058 Repository</name>
+            <url>https://repo.andrei1058.com/snapshots</url>
+          </repository>  
         <repository>
             <id>maven-central</id>
             <url>https://oss.sonatype.org/content/groups/public</url>
         </repository>
+        <repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
     </repositories>
 
     <build>
